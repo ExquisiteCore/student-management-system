@@ -14,13 +14,15 @@ use uuid::Uuid;
 pub enum UserRole {
     /// 管理员角色
     Admin,
-    /// 普通用户角色
-    User,
+    /// 教师角色
+    Teacher,
+    /// 学生角色
+    Student,
 }
 
 impl Default for UserRole {
     fn default() -> Self {
-        Self::User
+        Self::Student
     }
 }
 
@@ -28,7 +30,8 @@ impl AsRef<str> for UserRole {
     fn as_ref(&self) -> &str {
         match self {
             UserRole::Admin => "admin",
-            UserRole::User => "user",
+            UserRole::Teacher => "teacher",
+            UserRole::Student => "student",
         }
     }
 }
@@ -37,7 +40,9 @@ impl From<String> for UserRole {
     fn from(s: String) -> Self {
         match s.to_lowercase().as_str() {
             "admin" => UserRole::Admin,
-            _ => UserRole::User,
+            "teacher" => UserRole::Teacher,
+            "student" => UserRole::Student,
+            _ => UserRole::Student,
         }
     }
 }

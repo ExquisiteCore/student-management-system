@@ -83,7 +83,7 @@ pub async fn get_db_pool(config: &Arc<Config>) -> Result<PgPool, sqlx::Error> {
 async fn init_db(pool: &PgPool) -> Result<(), sqlx::Error> {
     info!("初始化数据库...");
 
-    // 创建用户表
+    // 创建用户表 - 修改role字段以区分学生和老师
     sqlx::query(
         "
         CREATE TABLE IF NOT EXISTS users (
@@ -94,7 +94,7 @@ async fn init_db(pool: &PgPool) -> Result<(), sqlx::Error> {
             display_name VARCHAR(100),
             avatar_url TEXT,
             bio TEXT,
-            role VARCHAR(20) NOT NULL DEFAULT 'user',
+            role VARCHAR(20) NOT NULL DEFAULT 'student', -- 默认为学生角色，可选值：student, teacher, admin
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
@@ -103,35 +103,70 @@ async fn init_db(pool: &PgPool) -> Result<(), sqlx::Error> {
     .execute(pool)
     .await?;
 
-    // 创建文章表
+    // 创建学生基本信息表
     sqlx::query(
         "
-        CREATE TABLE IF NOT EXISTS posts (
+        CREATE TABLE IF NOT EXISTS student_info (
             id UUID PRIMARY KEY,
-            title VARCHAR(200) NOT NULL,
-            slug VARCHAR(200) NOT NULL UNIQUE,
-            content TEXT NOT NULL,
-            excerpt TEXT,
-            featured_image TEXT,
-            published BOOLEAN NOT NULL DEFAULT FALSE,
-            author_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            grade INT NOT NULL, -- 年级：1, 2, 3
+            class_name VARCHAR(50), -- 班级名称
+            parent_name VARCHAR(100), -- 家长姓名
+            parent_phone VARCHAR(20), -- 家长电话
+            address TEXT, -- 家庭住址
+            notes TEXT, -- 备注信息
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+    ",
+    )
+    .execute(pool)
+    .await?;
+
+    // 创建课程记录表
+    sqlx::query(
+        "
+        CREATE TABLE IF NOT EXISTS course_records (
+            id UUID PRIMARY KEY,
+            date DATE NOT NULL, -- 上课日期
+            title VARCHAR(200) NOT NULL, -- 课程标题
+            content TEXT NOT NULL, -- 课程内容
+            keywords TEXT[], -- 课程关键词，用于检索
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+    ",
+    )
+    .execute(pool)
+    .await?;
+
+    // 创建学生课程记录关联表
+    sqlx::query(
+        "
+        CREATE TABLE IF NOT EXISTS student_course_records (
+            id UUID PRIMARY KEY,
+            student_id UUID NOT NULL REFERENCES student_info(id) ON DELETE CASCADE,
+            course_record_id UUID NOT NULL REFERENCES course_records(id) ON DELETE CASCADE,
+            performance TEXT, -- 学生上课表现
+            notes TEXT, -- 备注信息
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-            published_at TIMESTAMPTZ
+            UNIQUE(student_id, course_record_id)
         )
     ",
     )
     .execute(pool)
     .await?;
 
-    // 创建标签表
+    // 创建试卷表
     sqlx::query(
         "
-        CREATE TABLE IF NOT EXISTS label (
+        CREATE TABLE IF NOT EXISTS exams (
             id UUID PRIMARY KEY,
-            name VARCHAR(50) NOT NULL UNIQUE,
-            slug VARCHAR(50) NOT NULL UNIQUE,
-            description TEXT,
+            title VARCHAR(200) NOT NULL, -- 试卷标题
+            description TEXT, -- 试卷描述
+            grade INT NOT NULL, -- 适用年级
+            keywords TEXT[], -- 试卷关键词，用于检索
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
@@ -140,30 +175,56 @@ async fn init_db(pool: &PgPool) -> Result<(), sqlx::Error> {
     .execute(pool)
     .await?;
 
-    // 创建文章标签关联表
+    // 创建学生试卷记录表
     sqlx::query(
         "
-        CREATE TABLE IF NOT EXISTS post_label (
-            post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-            label_id UUID NOT NULL REFERENCES label(id) ON DELETE CASCADE,
-            PRIMARY KEY (post_id, label_id)
+        CREATE TABLE IF NOT EXISTS student_exam_records (
+            id UUID PRIMARY KEY,
+            student_id UUID NOT NULL REFERENCES student_info(id) ON DELETE CASCADE,
+            exam_id UUID NOT NULL REFERENCES exams(id) ON DELETE CASCADE,
+            score DECIMAL(5,2), -- 分数
+            completed_date DATE NOT NULL, -- 完成日期
+            notes TEXT, -- 备注信息
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            UNIQUE(student_id, exam_id, completed_date)
         )
     ",
     )
     .execute(pool)
     .await?;
 
-    // 创建评论表
+    // 创建作业表
     sqlx::query(
         "
-        CREATE TABLE IF NOT EXISTS comments (
+        CREATE TABLE IF NOT EXISTS homework (
             id UUID PRIMARY KEY,
-            content TEXT NOT NULL,
-            post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-            user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            parent_id UUID REFERENCES comments(id) ON DELETE CASCADE,
+            title VARCHAR(200) NOT NULL, -- 作业标题
+            description TEXT, -- 作业描述
+            due_date DATE, -- 截止日期
+            grade INT NOT NULL, -- 适用年级
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+    ",
+    )
+    .execute(pool)
+    .await?;
+
+    // 创建学生作业提交记录表
+    sqlx::query(
+        "
+        CREATE TABLE IF NOT EXISTS student_homework_submissions (
+            id UUID PRIMARY KEY,
+            student_id UUID NOT NULL REFERENCES student_info(id) ON DELETE CASCADE,
+            homework_id UUID NOT NULL REFERENCES homework(id) ON DELETE CASCADE,
+            file_path TEXT, -- 作业文件路径
+            submission_date TIMESTAMPTZ NOT NULL DEFAULT NOW(), -- 提交日期
+            score DECIMAL(5,2), -- 分数
+            feedback TEXT, -- 教师反馈
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            UNIQUE(student_id, homework_id)
         )
     ",
     )
@@ -186,7 +247,16 @@ async fn is_db_empty(pool: &PgPool) -> Result<bool, sqlx::Error> {
         "
         SELECT COUNT(*) as count FROM information_schema.tables 
         WHERE table_schema = 'public' 
-        AND table_name IN ('users', 'posts', 'label', 'post_label', 'comments')
+        AND table_name IN (
+            'users', 
+            'student_info', 
+            'course_records', 
+            'student_course_records', 
+            'exams', 
+            'student_exam_records', 
+            'homework', 
+            'student_homework_submissions'
+        )
         ",
     )
     .fetch_one(pool)
