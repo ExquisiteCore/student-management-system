@@ -221,4 +221,80 @@ impl Homework {
 
         Ok(result.rows_affected() > 0)
     }
+
+    /// 根据标题查找作业
+    pub async fn find_by_title(pool: &PgPool, title: &str) -> Result<Vec<Self>, Error> {
+        let homeworks = sqlx::query_as!(
+            Self,
+            r#"
+            SELECT id, student_id, title, description, file_path, submission_date, grade, feedback, teacher_id, created_at, updated_at
+            FROM homework
+            WHERE title ILIKE $1
+            ORDER BY submission_date DESC
+            "#,
+            format!("%{}%", title)
+        )
+        .fetch_all(pool)
+        .await?;
+
+        Ok(homeworks)
+    }
+
+    /// 根据日期范围查找作业
+    pub async fn find_by_date_range(
+        pool: &PgPool,
+        start_date: Option<Date>,
+        end_date: Option<Date>,
+    ) -> Result<Vec<Self>, Error> {
+        let homeworks = match (start_date, end_date) {
+            (Some(start), Some(end)) => {
+                sqlx::query_as!(
+                    Self,
+                    r#"
+                    SELECT id, student_id, title, description, file_path, submission_date, grade, feedback, teacher_id, created_at, updated_at
+                    FROM homework
+                    WHERE submission_date >= $1 AND submission_date <= $2
+                    ORDER BY submission_date DESC
+                    "#,
+                    start,
+                    end
+                )
+                .fetch_all(pool)
+                .await?
+            },
+            (Some(start), None) => {
+                sqlx::query_as!(
+                    Self,
+                    r#"
+                    SELECT id, student_id, title, description, file_path, submission_date, grade, feedback, teacher_id, created_at, updated_at
+                    FROM homework
+                    WHERE submission_date >= $1
+                    ORDER BY submission_date DESC
+                    "#,
+                    start
+                )
+                .fetch_all(pool)
+                .await?
+            },
+            (None, Some(end)) => {
+                sqlx::query_as!(
+                    Self,
+                    r#"
+                    SELECT id, student_id, title, description, file_path, submission_date, grade, feedback, teacher_id, created_at, updated_at
+                    FROM homework
+                    WHERE submission_date <= $1
+                    ORDER BY submission_date DESC
+                    "#,
+                    end
+                )
+                .fetch_all(pool)
+                .await?
+            },
+            (None, None) => {
+                return Self::find_all(pool).await;
+            }
+        };
+
+        Ok(homeworks)
+    }
 }

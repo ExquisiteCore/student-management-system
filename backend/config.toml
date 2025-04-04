@@ -5,8 +5,7 @@ port = 8080
 
 # 数据库配置
 [database]
-#url = "postgres://postgres:123456@localhost:5432/Blog"
-url = "postgres://ExquisiteCoreBlog:621716Aawa@pgm-bp107q684900ia6j9o.pg.rds.aliyuncs.com/Blog"
+url = "postgres://postgres:123456@localhost:5432/student"
 max_connections = 5
 
 # JWT配置

@@ -175,7 +175,11 @@ impl CourseRecord {
     }
 
     /// 更新课程记录
-    pub async fn update(pool: &PgPool, id: Uuid, req: UpdateCourseRecordRequest) -> Result<Self, Error> {
+    pub async fn update(
+        pool: &PgPool,
+        id: Uuid,
+        req: UpdateCourseRecordRequest,
+    ) -> Result<Self, Error> {
         let record = Self::find_by_id(pool, id).await?;
 
         if let Some(record) = record {
@@ -219,5 +223,102 @@ impl CourseRecord {
             .await?;
 
         Ok(result.rows_affected() > 0)
+    }
+
+    /// 根据日期范围查找课程记录
+    pub async fn find_by_date_range(
+        pool: &PgPool,
+        start_date: Option<Date>,
+        end_date: Option<Date>,
+    ) -> Result<Vec<Self>, Error> {
+        let records = match (start_date, end_date) {
+            (Some(start), Some(end)) => {
+                sqlx::query_as!(
+                    Self,
+                    r#"
+                    SELECT id, student_id, course_id, class_date, content, performance, teacher_id, created_at, updated_at
+                    FROM course_records
+                    WHERE class_date >= $1 AND class_date <= $2
+                    ORDER BY class_date DESC
+                    "#,
+                    start,
+                    end
+                )
+                .fetch_all(pool)
+                .await?
+            },
+            (Some(start), None) => {
+                sqlx::query_as!(
+                    Self,
+                    r#"
+                    SELECT id, student_id, course_id, class_date, content, performance, teacher_id, created_at, updated_at
+                    FROM course_records
+                    WHERE class_date >= $1
+                    ORDER BY class_date DESC
+                    "#,
+                    start
+                )
+                .fetch_all(pool)
+                .await?
+            },
+            (None, Some(end)) => {
+                sqlx::query_as!(
+                    Self,
+                    r#"
+                    SELECT id, student_id, course_id, class_date, content, performance, teacher_id, created_at, updated_at
+                    FROM course_records
+                    WHERE class_date <= $1
+                    ORDER BY class_date DESC
+                    "#,
+                    end
+                )
+                .fetch_all(pool)
+                .await?
+            },
+            (None, None) => {
+                return Self::find_all(pool).await;
+            }
+        };
+
+        Ok(records)
+    }
+
+    /// 根据课程关键词查找课程记录
+    pub async fn find_by_course_keyword(pool: &PgPool, keyword: &str) -> Result<Vec<Self>, Error> {
+        // 先查询与关键词匹配的课程
+        let courses = sqlx::query!(
+            r#"
+            SELECT id
+            FROM courses
+            WHERE name ILIKE $1 OR description ILIKE $1
+            "#,
+            format!("%{}%", keyword)
+        )
+        .fetch_all(pool)
+        .await?;
+
+        // 如果没有找到匹配的课程，返回空列表
+        if courses.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        // 提取课程ID
+        let course_ids: Vec<Uuid> = courses.into_iter().map(|c| c.id).collect();
+
+        // 查询这些课程的记录
+        let records = sqlx::query_as!(
+            Self,
+            r#"
+            SELECT id, student_id, course_id, class_date, content, performance, teacher_id, created_at, updated_at
+            FROM course_records
+            WHERE course_id = ANY($1)
+            ORDER BY class_date DESC
+            "#,
+            &course_ids
+        )
+        .fetch_all(pool)
+        .await?;
+
+        Ok(records)
     }
 }

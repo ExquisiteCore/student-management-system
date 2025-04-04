@@ -203,4 +203,62 @@ impl ExamRecord {
 
         Ok(result.rows_affected() > 0)
     }
+
+    /// 根据日期范围查找试卷记录
+    pub async fn find_by_date_range(
+        pool: &PgPool,
+        start_date: Option<Date>,
+        end_date: Option<Date>,
+    ) -> Result<Vec<Self>, Error> {
+        let records = match (start_date, end_date) {
+            (Some(start), Some(end)) => {
+                sqlx::query_as!(
+                    Self,
+                    r#"
+                    SELECT id, student_id, exam_id, score, completion_date, notes, created_at, updated_at
+                    FROM exam_records
+                    WHERE completion_date >= $1 AND completion_date <= $2
+                    ORDER BY completion_date DESC
+                    "#,
+                    start,
+                    end
+                )
+                .fetch_all(pool)
+                .await?
+            },
+            (Some(start), None) => {
+                sqlx::query_as!(
+                    Self,
+                    r#"
+                    SELECT id, student_id, exam_id, score, completion_date, notes, created_at, updated_at
+                    FROM exam_records
+                    WHERE completion_date >= $1
+                    ORDER BY completion_date DESC
+                    "#,
+                    start
+                )
+                .fetch_all(pool)
+                .await?
+            },
+            (None, Some(end)) => {
+                sqlx::query_as!(
+                    Self,
+                    r#"
+                    SELECT id, student_id, exam_id, score, completion_date, notes, created_at, updated_at
+                    FROM exam_records
+                    WHERE completion_date <= $1
+                    ORDER BY completion_date DESC
+                    "#,
+                    end
+                )
+                .fetch_all(pool)
+                .await?
+            },
+            (None, None) => {
+                return Self::find_all(pool).await;
+            }
+        };
+
+        Ok(records)
+    }
 }
