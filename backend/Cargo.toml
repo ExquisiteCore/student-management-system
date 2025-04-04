@@ -22,7 +22,9 @@ sqlx = { version = "0.8", features = [
   "uuid",
   "time",
   "json",
+  "rust_decimal",
 ] }
+rust_decimal = { version = "1.37", features = ["serde"] }
 
 # 序列化/反序列化
 serde = { version = "1.0", features = ["derive"] }

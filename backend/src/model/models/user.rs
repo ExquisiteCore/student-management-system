@@ -12,8 +12,6 @@ use uuid::Uuid;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum UserRole {
-    /// 管理员角色
-    Admin,
     /// 教师角色
     Teacher,
     /// 学生角色
@@ -29,7 +27,6 @@ impl Default for UserRole {
 impl AsRef<str> for UserRole {
     fn as_ref(&self) -> &str {
         match self {
-            UserRole::Admin => "admin",
             UserRole::Teacher => "teacher",
             UserRole::Student => "student",
         }
@@ -39,9 +36,7 @@ impl AsRef<str> for UserRole {
 impl From<String> for UserRole {
     fn from(s: String) -> Self {
         match s.to_lowercase().as_str() {
-            "admin" => UserRole::Admin,
             "teacher" => UserRole::Teacher,
-            "student" => UserRole::Student,
             _ => UserRole::Student,
         }
     }

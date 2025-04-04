@@ -27,6 +27,8 @@ pub fn create_routes() -> Router<Arc<Pool<Postgres>>> {
         .layer(from_fn(auth::admin_middleware));
 
     // 合并所有路由
-    Router::new().merge(user_routes).merge(admin_routes)
-    //.merge(public_routes)
+    Router::new()
+        .merge(user_routes)
+        .merge(admin_routes)
+        .merge(public_routes)
 }
