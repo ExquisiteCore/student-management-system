@@ -1,5 +1,0 @@
-# 数据库配置
-[database]
-#url = "postgres://postgres:123456@localhost:5432/Blog"
-url = "postgres://ExquisiteCoreBlog:621716Aawa@pgm-bp107q684900ia6j9o.pg.rds.aliyuncs.com/Blog"
-max_connections = 5

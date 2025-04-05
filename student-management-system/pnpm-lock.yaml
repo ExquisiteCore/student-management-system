@@ -4078,6 +4078,7 @@ snapshots:
     dependencies:
       '@radix-ui/react-slot': 1.1.2(@types/react@19.1.0)(react@19.1.0)
       '@radix-ui/react-tooltip': 1.1.8(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      axios: 1.8.4
       class-variance-authority: 0.7.1
       clsx: 2.1.1
       lucide-react: 0.487.0(react@19.1.0)
@@ -4096,6 +4097,7 @@ snapshots:
       - '@types/react-dom'
       - babel-plugin-macros
       - babel-plugin-react-compiler
+      - debug
       - sass
 
   styled-jsx@5.1.6(react@19.1.0):
