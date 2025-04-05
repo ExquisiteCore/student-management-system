@@ -1,0 +1,2058 @@
+openapi: 3.0.0
+info:
+  title: 学生管理系统 API
+  version: 1.0.0
+  description: 学生管理系统的API文档，包含用户、学生、课程、考试和作业等功能
+
+servers:
+  - url: http://localhost:3000/api
+    description: 本地开发服务器
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 使用JWT令牌进行身份验证
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 用户ID
+        username:
+          type: string
+          description: 用户名
+        email:
+          type: string
+          format: email
+          description: 电子邮件
+        display_name:
+          type: string
+          nullable: true
+          description: 显示名称
+        avatar_url:
+          type: string
+          nullable: true
+          description: 头像URL
+        bio:
+          type: string
+          nullable: true
+          description: 个人简介
+        role:
+          type: string
+          description: 用户角色
+          enum: [teacher, student]
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+
+    CreateUserRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          description: 用户名
+        email:
+          type: string
+          format: email
+          description: 电子邮件
+        password:
+          type: string
+          description: 密码
+        display_name:
+          type: string
+          nullable: true
+          description: 显示名称
+        avatar_url:
+          type: string
+          nullable: true
+          description: 头像URL
+        bio:
+          type: string
+          nullable: true
+          description: 个人简介
+        role:
+          type: string
+          nullable: true
+          description: 用户角色
+          enum: [teacher, student]
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: 用户名或电子邮件
+        password:
+          type: string
+          description: 密码
+
+    LoginResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+          description: JWT令牌
+
+    Student:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 学生ID
+        user_id:
+          type: string
+          format: uuid
+          description: 关联的用户ID
+        grade:
+          type: integer
+          description: 年级
+        parent_name:
+          type: string
+          nullable: true
+          description: 家长姓名
+        parent_phone:
+          type: string
+          nullable: true
+          description: 家长电话
+        address:
+          type: string
+          nullable: true
+          description: 地址
+        notes:
+          type: string
+          nullable: true
+          description: 备注
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+
+    CreateStudentRequest:
+      type: object
+      required:
+        - user_id
+        - grade
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: 关联的用户ID
+        grade:
+          type: integer
+          description: 年级
+        parent_name:
+          type: string
+          nullable: true
+          description: 家长姓名
+        parent_phone:
+          type: string
+          nullable: true
+          description: 家长电话
+        address:
+          type: string
+          nullable: true
+          description: 地址
+        notes:
+          type: string
+          nullable: true
+          description: 备注
+
+    UpdateStudentRequest:
+      type: object
+      properties:
+        grade:
+          type: integer
+          nullable: true
+          description: 年级
+        parent_name:
+          type: string
+          nullable: true
+          description: 家长姓名
+        parent_phone:
+          type: string
+          nullable: true
+          description: 家长电话
+        address:
+          type: string
+          nullable: true
+          description: 地址
+        notes:
+          type: string
+          nullable: true
+          description: 备注
+
+    Course:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 课程ID
+        name:
+          type: string
+          description: 课程名称
+        description:
+          type: string
+          nullable: true
+          description: 课程描述
+        keywords:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: 课程关键词
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+
+    CreateCourseRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: 课程名称
+        description:
+          type: string
+          nullable: true
+          description: 课程描述
+        keywords:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: 课程关键词
+
+    UpdateCourseRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+          description: 课程名称
+        description:
+          type: string
+          nullable: true
+          description: 课程描述
+        keywords:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: 课程关键词
+
+    CourseRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 记录ID
+        student_id:
+          type: string
+          format: uuid
+          description: 学生ID
+        course_id:
+          type: string
+          format: uuid
+          description: 课程ID
+        class_date:
+          type: string
+          format: date
+          description: 上课日期
+        content:
+          type: string
+          description: 上课内容
+        performance:
+          type: string
+          nullable: true
+          description: 上课表现
+        teacher_id:
+          type: string
+          format: uuid
+          description: 教师ID
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+
+    CreateCourseRecordRequest:
+      type: object
+      required:
+        - student_id
+        - course_id
+        - class_date
+        - content
+        - teacher_id
+      properties:
+        student_id:
+          type: string
+          format: uuid
+          description: 学生ID
+        course_id:
+          type: string
+          format: uuid
+          description: 课程ID
+        class_date:
+          type: string
+          format: date
+          description: 上课日期
+        content:
+          type: string
+          description: 上课内容
+        performance:
+          type: string
+          nullable: true
+          description: 上课表现
+        teacher_id:
+          type: string
+          format: uuid
+          description: 教师ID
+
+    UpdateCourseRecordRequest:
+      type: object
+      properties:
+        student_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: 学生ID
+        course_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: 课程ID
+        class_date:
+          type: string
+          format: date
+          nullable: true
+          description: 上课日期
+        content:
+          type: string
+          nullable: true
+          description: 上课内容
+        performance:
+          type: string
+          nullable: true
+          description: 上课表现
+        teacher_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: 教师ID
+
+    CourseRecordQuery:
+      type: object
+      properties:
+        student_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: 学生ID
+        course_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: 课程ID
+        start_date:
+          type: string
+          format: date
+          nullable: true
+          description: 开始日期
+        end_date:
+          type: string
+          format: date
+          nullable: true
+          description: 结束日期
+        teacher_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: 教师ID
+
+    Exam:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 试卷ID
+        title:
+          type: string
+          description: 试卷标题
+        description:
+          type: string
+          nullable: true
+          description: 试卷描述
+        keywords:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: 试卷关键词
+        file_path:
+          type: string
+          nullable: true
+          description: 试卷文件路径
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+
+    CreateExamRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: 试卷标题
+        description:
+          type: string
+          nullable: true
+          description: 试卷描述
+        keywords:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: 试卷关键词
+        file_path:
+          type: string
+          nullable: true
+          description: 试卷文件路径
+
+    UpdateExamRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          nullable: true
+          description: 试卷标题
+        description:
+          type: string
+          nullable: true
+          description: 试卷描述
+        keywords:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: 试卷关键词
+        file_path:
+          type: string
+          nullable: true
+          description: 试卷文件路径
+
+    ExamRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 记录ID
+        student_id:
+          type: string
+          format: uuid
+          description: 学生ID
+        exam_id:
+          type: string
+          format: uuid
+          description: 试卷ID
+        score:
+          type: number
+          format: decimal
+          nullable: true
+          description: 分数
+        completion_date:
+          type: string
+          format: date
+          description: 完成日期
+        notes:
+          type: string
+          nullable: true
+          description: 备注
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+
+    CreateExamRecordRequest:
+      type: object
+      required:
+        - student_id
+        - exam_id
+        - completion_date
+      properties:
+        student_id:
+          type: string
+          format: uuid
+          description: 学生ID
+        exam_id:
+          type: string
+          format: uuid
+          description: 试卷ID
+        score:
+          type: number
+          format: decimal
+          nullable: true
+          description: 分数
+        completion_date:
+          type: string
+          format: date
+          description: 完成日期
+        notes:
+          type: string
+          nullable: true
+          description: 备注
+
+    UpdateExamRecordRequest:
+      type: object
+      properties:
+        student_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: 学生ID
+        exam_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: 试卷ID
+        score:
+          type: number
+          format: decimal
+          nullable: true
+          description: 分数
+        completion_date:
+          type: string
+          format: date
+          nullable: true
+          description: 完成日期
+        notes:
+          type: string
+          nullable: true
+          description: 备注
+
+    ExamRecordQuery:
+      type: object
+      properties:
+        student_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: 学生ID
+        exam_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: 试卷ID
+        min_score:
+          type: number
+          format: decimal
+          nullable: true
+          description: 最低分数
+        max_score:
+          type: number
+          format: decimal
+          nullable: true
+          description: 最高分数
+        start_date:
+          type: string
+          format: date
+          nullable: true
+          description: 开始日期
+        end_date:
+          type: string
+          format: date
+          nullable: true
+          description: 结束日期
+
+    Homework:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 作业ID
+        student_id:
+          type: string
+          format: uuid
+          description: 学生ID
+        title:
+          type: string
+          description: 作业标题
+        description:
+          type: string
+          nullable: true
+          description: 作业描述
+        file_path:
+          type: string
+          nullable: true
+          description: 作业文件路径
+        submission_date:
+          type: string
+          format: date
+          description: 提交日期
+        grade:
+          type: string
+          nullable: true
+          description: 评分
+        feedback:
+          type: string
+          nullable: true
+          description: 反馈
+        teacher_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: 教师ID
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+
+    CreateHomeworkRequest:
+      type: object
+      required:
+        - student_id
+        - title
+        - submission_date
+      properties:
+        student_id:
+          type: string
+          format: uuid
+          description: 学生ID
+        title:
+          type: string
+          description: 作业标题
+        description:
+          type: string
+          nullable: true
+          description: 作业描述
+        file_path:
+          type: string
+          nullable: true
+          description: 作业文件路径
+        submission_date:
+          type: string
+          format: date
+          description: 提交日期
+        grade:
+          type: string
+          nullable: true
+          description: 评分
+        feedback:
+          type: string
+          nullable: true
+          description: 反馈
+        teacher_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: 教师ID
+
+    UpdateHomeworkRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          nullable: true
+          description: 作业标题
+        description:
+          type: string
+          nullable: true
+          description: 作业描述
+        file_path:
+          type: string
+          nullable: true
+          description: 作业文件路径
+        submission_date:
+          type: string
+          format: date
+          nullable: true
+          description: 提交日期
+        grade:
+          type: string
+          nullable: true
+          description: 评分
+        feedback:
+          type: string
+          nullable: true
+          description: 反馈
+        teacher_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: 教师ID
+
+    HomeworkQuery:
+      type: object
+      properties:
+        student_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: 学生ID
+        teacher_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: 教师ID
+        graded:
+          type: boolean
+          nullable: true
+          description: 是否已评分
+        start_date:
+          type: string
+          format: date
+          nullable: true
+          description: 开始日期
+        end_date:
+          type: string
+          format: date
+          nullable: true
+          description: 结束日期
+
+    GradeHomeworkRequest:
+      type: object
+      required:
+        - grade
+      properties:
+        grade:
+          type: string
+          description: 评分
+        feedback:
+          type: string
+          nullable: true
+          description: 反馈
+        teacher_id:
+          type: string
+          format: uuid
+          description: 教师ID
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: 错误信息
+        code:
+          type: string
+          description: 错误代码
+
+paths:
+  /users/register:
+    post:
+      summary: 注册用户
+      tags:
+        - 公共
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+            example:
+              username: "newuser"
+              email: "user@example.com"
+              password: "password123"
+              display_name: "新用户"
+              role: "student"
+      responses:
+        "200":
+          description: 用户注册成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174000"
+                username: "newuser"
+                email: "user@example.com"
+                display_name: "新用户"
+                role: "student"
+                created_at: "2023-01-01T12:00:00Z"
+                updated_at: "2023-01-01T12:00:00Z"
+        "400":
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "用户名已被使用"
+                code: "duplicate"
+  /users/login:
+    post:
+      summary: 用户登录
+      tags:
+        - 公共
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+            example:
+              username: "user@example.com"
+              password: "password123"
+      responses:
+        "200":
+          description: 用户登录成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+              example:
+                user:
+                  id: "123e4567-e89b-12d3-a456-426614174000"
+                  username: "newuser"
+                  email: "user@example.com"
+                  display_name: "新用户"
+                  role: "student"
+                  created_at: "2023-01-01T12:00:00Z"
+                  updated_at: "2023-01-01T12:00:00Z"
+                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        "401":
+          description: 登录失败
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "用户名/邮箱或密码错误"
+                code: "incorrect_login"
+  /auth/refresh:
+    post:
+      summary: 刷新令牌
+      tags:
+        - 公共
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+                  description: 刷新令牌
+            example:
+              refresh_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        "200":
+          description: 令牌刷新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: 新的JWT令牌
+                  refresh_token:
+                    type: string
+                    description: 新的刷新令牌
+              example:
+                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                refresh_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        "401":
+          description: 刷新令牌无效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "无效的刷新令牌"
+                code: "invalid_token"
+  /students:
+    post:
+      summary: 创建学生
+      tags:
+        - 学生
+      operationId: createStudent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStudentRequest"
+            example:
+              user_id: "123e4567-e89b-12d3-a456-426614174000"
+              grade: 3
+              parent_name: "张三"
+              parent_phone: "13800138000"
+              address: "北京市海淀区"
+              notes: "优秀学生"
+      responses:
+        "200":
+          description: 学生创建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174001"
+                user_id: "123e4567-e89b-12d3-a456-426614174000"
+                grade: 3
+                parent_name: "张三"
+                parent_phone: "13800138000"
+                address: "北京市海淀区"
+                notes: "优秀学生"
+                created_at: "2023-01-01T12:00:00Z"
+                updated_at: "2023-01-01T12:00:00Z"
+        "400":
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /students/{id}:
+    get:
+      summary: 获取学生
+      tags:
+        - 学生
+      operationId: getStudent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 学生ID
+      responses:
+        "200":
+          description: 学生详细信息
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174001"
+                user_id: "123e4567-e89b-12d3-a456-426614174000"
+                grade: 3
+                parent_name: "张三"
+                parent_phone: "13800138000"
+                address: "北京市海淀区"
+                notes: "优秀学生"
+                created_at: "2023-01-01T12:00:00Z"
+                updated_at: "2023-01-01T12:00:00Z"
+        "404":
+          description: 学生不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "学生不存在"
+                code: "not_found"
+    put:
+      summary: 更新学生
+      tags:
+        - 学生
+      operationId: updateStudent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 学生ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStudentRequest"
+            example:
+              grade: 4
+              parent_phone: "13900139000"
+              notes: "成绩优秀的学生"
+      responses:
+        "200":
+          description: 学生更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174001"
+                user_id: "123e4567-e89b-12d3-a456-426614174000"
+                grade: 4
+                parent_name: "张三"
+                parent_phone: "13900139000"
+                address: "北京市海淀区"
+                notes: "成绩优秀的学生"
+                created_at: "2023-01-01T12:00:00Z"
+                updated_at: "2023-01-02T12:00:00Z"
+        "404":
+          description: 学生不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: 删除学生
+      tags:
+        - 学生
+      operationId: deleteStudent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 学生ID
+      responses:
+        "204":
+          description: 学生删除成功
+        "404":
+          description: 学生不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /students/grade/{grade}:
+    get:
+      summary: 按年级获取学生
+      tags:
+        - 学生
+      operationId: getStudentsByGrade
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: grade
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 年级
+      responses:
+        "200":
+          description: 按年级获取学生列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Student"
+              example:
+                - id: "123e4567-e89b-12d3-a456-426614174001"
+                  user_id: "123e4567-e89b-12d3-a456-426614174000"
+                  grade: 3
+                  parent_name: "张三"
+                  parent_phone: "13800138000"
+                  address: "北京市海淀区"
+                  notes: "优秀学生"
+                  created_at: "2023-01-01T12:00:00Z"
+                  updated_at: "2023-01-01T12:00:00Z"
+                - id: "123e4567-e89b-12d3-a456-426614174002"
+                  user_id: "123e4567-e89b-12d3-a456-426614174003"
+                  grade: 3
+                  parent_name: "李四"
+                  parent_phone: "13900139001"
+                  address: "北京市朝阳区"
+                  notes: "活泼好动"
+                  created_at: "2023-01-01T12:00:00Z"
+                  updated_at: "2023-01-01T12:00:00Z"
+
+  /courses:
+    post:
+      summary: 创建课程
+      tags:
+        - 课程
+      operationId: createCourse
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCourseRequest"
+            example:
+              name: "高等数学"
+              description: "大学一年级高等数学课程"
+              keywords: ["数学", "微积分", "线性代数"]
+      responses:
+        "200":
+          description: 课程创建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174010"
+                name: "高等数学"
+                description: "大学一年级高等数学课程"
+                keywords: ["数学", "微积分", "线性代数"]
+                created_at: "2023-01-01T12:00:00Z"
+                updated_at: "2023-01-01T12:00:00Z"
+        "400":
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /courses/{id}:
+    get:
+      summary: 获取课程
+      tags:
+        - 课程
+      operationId: getCourse
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 课程ID
+      responses:
+        "200":
+          description: 课程详细信息
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174010"
+                name: "高等数学"
+                description: "大学一年级高等数学课程"
+                keywords: ["数学", "微积分", "线性代数"]
+                created_at: "2023-01-01T12:00:00Z"
+                updated_at: "2023-01-01T12:00:00Z"
+        "404":
+          description: 课程不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "课程不存在"
+                code: "not_found"
+    put:
+      summary: 更新课程
+      tags:
+        - 课程
+      operationId: updateCourse
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 课程ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCourseRequest"
+            example:
+              name: "高等数学进阶"
+              description: "大学二年级高等数学进阶课程"
+              keywords: ["数学", "微积分", "线性代数", "微分方程"]
+      responses:
+        "200":
+          description: 课程更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174010"
+                name: "高等数学进阶"
+                description: "大学二年级高等数学进阶课程"
+                keywords: ["数学", "微积分", "线性代数", "微分方程"]
+                created_at: "2023-01-01T12:00:00Z"
+                updated_at: "2023-01-02T12:00:00Z"
+        "404":
+          description: 课程不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: 删除课程
+      tags:
+        - 课程
+      operationId: deleteCourse
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 课程ID
+      responses:
+        "204":
+          description: 课程删除成功
+        "404":
+          description: 课程不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /courses/keyword/{keyword}:
+    get:
+      summary: 按关键词查询课程
+      tags:
+        - 课程
+      operationId: searchCoursesByKeyword
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: keyword
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 关键词
+      responses:
+        "200":
+          description: 按关键词查询课程列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Course"
+              example:
+                - id: "123e4567-e89b-12d3-a456-426614174010"
+                  name: "高等数学"
+                  description: "大学一年级高等数学课程"
+                  keywords: ["数学", "微积分", "线性代数"]
+                  created_at: "2023-01-01T12:00:00Z"
+                  updated_at: "2023-01-01T12:00:00Z"
+
+  /course-records:
+    post:
+      summary: 创建课程记录
+      tags:
+        - 课程记录
+      operationId: createCourseRecord
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCourseRecordRequest"
+            example:
+              student_id: "123e4567-e89b-12d3-a456-426614174001"
+              course_id: "123e4567-e89b-12d3-a456-426614174010"
+              class_date: "2023-01-15"
+              content: "微积分基础概念"
+              performance: "表现良好，积极回答问题"
+              teacher_id: "123e4567-e89b-12d3-a456-426614174020"
+      responses:
+        "200":
+          description: 课程记录创建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CourseRecord"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174030"
+                student_id: "123e4567-e89b-12d3-a456-426614174001"
+                course_id: "123e4567-e89b-12d3-a456-426614174010"
+                class_date: "2023-01-15"
+                content: "微积分基础概念"
+                performance: "表现良好，积极回答问题"
+                teacher_id: "123e4567-e89b-12d3-a456-426614174020"
+                created_at: "2023-01-15T12:00:00Z"
+                updated_at: "2023-01-15T12:00:00Z"
+        "400":
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /course-records/{id}:
+    get:
+      summary: 获取课程记录
+      tags:
+        - 课程记录
+      operationId: getCourseRecord
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 课程记录ID
+      responses:
+        "200":
+          description: 课程记录详细信息
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CourseRecord"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174030"
+                student_id: "123e4567-e89b-12d3-a456-426614174001"
+                course_id: "123e4567-e89b-12d3-a456-426614174010"
+                class_date: "2023-01-15"
+                content: "微积分基础概念"
+                performance: "表现良好，积极回答问题"
+                teacher_id: "123e4567-e89b-12d3-a456-426614174020"
+                created_at: "2023-01-15T12:00:00Z"
+                updated_at: "2023-01-15T12:00:00Z"
+        "404":
+          description: 课程记录不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: 更新课程记录
+      tags:
+        - 课程记录
+      operationId: updateCourseRecord
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 课程记录ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCourseRecordRequest"
+            example:
+              content: "微积分基础概念与应用"
+              performance: "表现优秀，积极参与讨论"
+      responses:
+        "200":
+          description: 课程记录更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CourseRecord"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174030"
+                student_id: "123e4567-e89b-12d3-a456-426614174001"
+                course_id: "123e4567-e89b-12d3-a456-426614174010"
+                class_date: "2023-01-15"
+                content: "微积分基础概念与应用"
+                performance: "表现优秀，积极参与讨论"
+                teacher_id: "123e4567-e89b-12d3-a456-426614174020"
+                created_at: "2023-01-15T12:00:00Z"
+                updated_at: "2023-01-16T12:00:00Z"
+        "404":
+          description: 课程记录不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: 删除课程记录
+      tags:
+        - 课程记录
+      operationId: deleteCourseRecord
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 课程记录ID
+      responses:
+        "204":
+          description: 课程记录删除成功
+        "404":
+          description: 课程记录不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /course-records/query:
+    get:
+      summary: 查询课程记录
+      tags:
+        - 课程记录
+      operationId: queryCourseRecords
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: student_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: 学生ID
+        - name: course_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: 课程ID
+        - name: start_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: 开始日期
+        - name: end_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: 结束日期
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 关键词
+      responses:
+        "200":
+          description: 查询课程记录列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CourseRecord"
+
+  /exams:
+    post:
+      summary: 创建试卷
+      tags:
+        - 试卷
+      operationId: createExam
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateExamRequest"
+            example:
+              title: "高等数学期中考试"
+              description: "大学一年级高等数学期中考试"
+              keywords: ["数学", "微积分", "期中考试"]
+              file_path: "/exams/math_midterm.pdf"
+      responses:
+        "200":
+          description: 试卷创建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Exam"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174040"
+                title: "高等数学期中考试"
+                description: "大学一年级高等数学期中考试"
+                keywords: ["数学", "微积分", "期中考试"]
+                file_path: "/exams/math_midterm.pdf"
+                created_at: "2023-01-01T12:00:00Z"
+                updated_at: "2023-01-01T12:00:00Z"
+        "400":
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /exams/{id}:
+    get:
+      summary: 获取试卷
+      tags:
+        - 试卷
+      operationId: getExam
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 试卷ID
+      responses:
+        "200":
+          description: 试卷详细信息
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Exam"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174040"
+                title: "高等数学期中考试"
+                description: "大学一年级高等数学期中考试"
+                keywords: ["数学", "微积分", "期中考试"]
+                file_path: "/exams/math_midterm.pdf"
+                created_at: "2023-01-01T12:00:00Z"
+                updated_at: "2023-01-01T12:00:00Z"
+        "404":
+          description: 试卷不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: 更新试卷
+      tags:
+        - 试卷
+      operationId: updateExam
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 试卷ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateExamRequest"
+            example:
+              title: "高等数学期中考试（修订版）"
+              description: "大学一年级高等数学期中考试修订版"
+              file_path: "/exams/math_midterm_revised.pdf"
+      responses:
+        "200":
+          description: 试卷更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Exam"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174040"
+                title: "高等数学期中考试（修订版）"
+                description: "大学一年级高等数学期中考试修订版"
+                keywords: ["数学", "微积分", "期中考试"]
+                file_path: "/exams/math_midterm_revised.pdf"
+                created_at: "2023-01-01T12:00:00Z"
+                updated_at: "2023-01-02T12:00:00Z"
+        "404":
+          description: 试卷不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: 删除试卷
+      tags:
+        - 试卷
+      operationId: deleteExam
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 试卷ID
+      responses:
+        "204":
+          description: 试卷删除成功
+        "404":
+          description: 试卷不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /exams/keyword/{keyword}:
+    get:
+      summary: 按关键词查询试卷
+      tags:
+        - 试卷
+      operationId: searchExamsByKeyword
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: keyword
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 关键词
+      responses:
+        "200":
+          description: 按关键词查询试卷列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Exam"
+
+  /exam-records:
+    post:
+      summary: 创建试卷记录
+      tags:
+        - 试卷记录
+      operationId: createExamRecord
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateExamRecordRequest"
+            example:
+              student_id: "123e4567-e89b-12d3-a456-426614174001"
+              exam_id: "123e4567-e89b-12d3-a456-426614174040"
+              score: 85.5
+              completion_date: "2023-01-20"
+              notes: "表现良好，计算题有小错误"
+      responses:
+        "200":
+          description: 试卷记录创建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExamRecord"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174050"
+                student_id: "123e4567-e89b-12d3-a456-426614174001"
+                exam_id: "123e4567-e89b-12d3-a456-426614174040"
+                score: 85.5
+                completion_date: "2023-01-20"
+                notes: "表现良好，计算题有小错误"
+                created_at: "2023-01-20T12:00:00Z"
+                updated_at: "2023-01-20T12:00:00Z"
+        "400":
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /exam-records/{id}:
+    get:
+      summary: 获取试卷记录
+      tags:
+        - 试卷记录
+      operationId: getExamRecord
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 试卷记录ID
+      responses:
+        "200":
+          description: 试卷记录详细信息
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExamRecord"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174050"
+                student_id: "123e4567-e89b-12d3-a456-426614174001"
+                exam_id: "123e4567-e89b-12d3-a456-426614174040"
+                score: 85.5
+                completion_date: "2023-01-20"
+                notes: "表现良好，计算题有小错误"
+                created_at: "2023-01-20T12:00:00Z"
+                updated_at: "2023-01-20T12:00:00Z"
+        "404":
+          description: 试卷记录不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: 更新试卷记录
+      tags:
+        - 试卷记录
+      operationId: updateExamRecord
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 试卷记录ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateExamRecordRequest"
+            example:
+              score: 88.0
+              notes: "重新评分，表现优秀"
+      responses:
+        "200":
+          description: 试卷记录更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExamRecord"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174050"
+                student_id: "123e4567-e89b-12d3-a456-426614174001"
+                exam_id: "123e4567-e89b-12d3-a456-426614174040"
+                score: 88.0
+                completion_date: "2023-01-20"
+                notes: "重新评分，表现优秀"
+                created_at: "2023-01-20T12:00:00Z"
+                updated_at: "2023-01-21T12:00:00Z"
+        "404":
+          description: 试卷记录不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: 删除试卷记录
+      tags:
+        - 试卷记录
+      operationId: deleteExamRecord
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 试卷记录ID
+      responses:
+        "204":
+          description: 试卷记录删除成功
+        "404":
+          description: 试卷记录不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /exam-records/query:
+    get:
+      summary: 查询试卷记录
+      tags:
+        - 试卷记录
+      operationId: queryExamRecords
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: student_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: 学生ID
+        - name: exam_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: 试卷ID
+        - name: min_score
+          in: query
+          required: false
+          schema:
+            type: number
+            format: decimal
+          description: 最低分数
+        - name: max_score
+          in: query
+          required: false
+          schema:
+            type: number
+            format: decimal
+          description: 最高分数
+        - name: start_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: 开始日期
+        - name: end_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: 结束日期
+      responses:
+        "200":
+          description: 查询试卷记录列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExamRecord"
+
+  /homework:
+    post:
+      summary: 创建作业
+      tags:
+        - 作业
+      operationId: createHomework
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHomeworkRequest"
+            example:
+              student_id: "123e4567-e89b-12d3-a456-426614174001"
+              title: "微积分作业1"
+              description: "完成课本第三章习题"
+              file_path: "/homework/calculus_ch3.pdf"
+              submission_date: "2023-01-25"
+              teacher_id: "123e4567-e89b-12d3-a456-426614174020"
+      responses:
+        "200":
+          description: 作业创建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Homework"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174060"
+                student_id: "123e4567-e89b-12d3-a456-426614174001"
+                title: "微积分作业1"
+                description: "完成课本第三章习题"
+                file_path: "/homework/calculus_ch3.pdf"
+                submission_date: "2023-01-25"
+                grade: null
+                feedback: null
+                teacher_id: "123e4567-e89b-12d3-a456-426614174020"
+                created_at: "2023-01-20T12:00:00Z"
+                updated_at: "2023-01-20T12:00:00Z"
+        "400":
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /homework/{id}:
+    get:
+      summary: 获取作业
+      tags:
+        - 作业
+      operationId: getHomework
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 作业ID
+      responses:
+        "200":
+          description: 作业详细信息
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Homework"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174060"
+                student_id: "123e4567-e89b-12d3-a456-426614174001"
+                title: "微积分作业1"
+                description: "完成课本第三章习题"
+                file_path: "/homework/calculus_ch3.pdf"
+                submission_date: "2023-01-25"
+                grade: null
+                feedback: null
+                teacher_id: "123e4567-e89b-12d3-a456-426614174020"
+                created_at: "2023-01-20T12:00:00Z"
+                updated_at: "2023-01-20T12:00:00Z"
+        "404":
+          description: 作业不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: 更新作业
+      tags:
+        - 作业
+      operationId: updateHomework
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 作业ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateHomeworkRequest"
+            example:
+              title: "微积分作业1（修订版）"
+              description: "完成课本第三章和第四章习题"
+              submission_date: "2023-01-28"
+      responses:
+        "200":
+          description: 作业更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Homework"
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174060"
+                student_id: "123e4567-e89b-12d3-a456-426614174001"
+                title: "微积分作业1（修订版）"
+                description: "完成课本第三章和第四章习题"
+                file_path: "/homework/calculus_ch3.pdf"
+                submission_date: "2023-01-28"
+                grade: null
+                feedback: null
+                teacher_id: "123e4567-e89b-12d3-a456-426614174020"
+                created_at: "2023-01-20T12:00:00Z"
+                updated_at: "2023-01-21T12:00:00Z"
+        "404":
+          description: 作业不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: 删除作业
+      tags:
+        - 作业
+      operationId: deleteHomework
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 作业ID
+      responses:
+        "204":
+          description: 作业删除成功
+        "404":
+          description: 作业不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"

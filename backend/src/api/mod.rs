@@ -29,11 +29,11 @@ pub fn create_routes() -> Router<Arc<Pool<Postgres>>> {
     // 学生相关路由 - 需要用户认证
     let student_routes = Router::new()
         .route("/students", post(studentapi::create_student))
-        .route("/students/:id", get(studentapi::get_student))
-        .route("/students/:id", put(studentapi::update_student))
-        .route("/students/:id", delete(studentapi::delete_student))
+        .route("/students/{id}", get(studentapi::get_student))
+        .route("/students/{id}", put(studentapi::update_student))
+        .route("/students/{id}", delete(studentapi::delete_student))
         .route(
-            "/students/grade/:grade",
+            "/students/grade/{grade}",
             get(studentapi::get_students_by_grade),
         )
         .layer(from_fn(auth::auth_middleware));
@@ -41,18 +41,18 @@ pub fn create_routes() -> Router<Arc<Pool<Postgres>>> {
     // 课程相关路由 - 需要用户认证
     let course_routes = Router::new()
         .route("/courses", post(courseapi::create_course))
-        .route("/courses/:id", get(courseapi::get_course))
-        .route("/courses/:id", put(courseapi::update_course))
-        .route("/courses/:id", delete(courseapi::delete_course))
+        .route("/courses/{id}", get(courseapi::get_course))
+        .route("/courses/{id}", put(courseapi::update_course))
+        .route("/courses/{id}", delete(courseapi::delete_course))
         .route(
-            "/courses/search/:keyword",
+            "/courses/search/{keyword}",
             get(courseapi::search_courses_by_keyword),
         )
         .route("/course-records", post(courseapi::create_course_record))
-        .route("/course-records/:id", get(courseapi::get_course_record))
-        .route("/course-records/:id", put(courseapi::update_course_record))
+        .route("/course-records/{id}", get(courseapi::get_course_record))
+        .route("/course-records/{id}", put(courseapi::update_course_record))
         .route(
-            "/course-records/:id",
+            "/course-records/{id}",
             delete(courseapi::delete_course_record),
         )
         .route(
@@ -64,28 +64,28 @@ pub fn create_routes() -> Router<Arc<Pool<Postgres>>> {
     // 试卷相关路由 - 需要用户认证
     let exam_routes = Router::new()
         .route("/exams", post(examapi::create_exam))
-        .route("/exams/:id", get(examapi::get_exam))
-        .route("/exams/:id", put(examapi::update_exam))
-        .route("/exams/:id", delete(examapi::delete_exam))
+        .route("/exams/{id}", get(examapi::get_exam))
+        .route("/exams/{id}", put(examapi::update_exam))
+        .route("/exams/{id}", delete(examapi::delete_exam))
         .route(
-            "/exams/search/:keyword",
+            "/exams/search/{keyword}",
             get(examapi::search_exams_by_keyword),
         )
         .route("/exam-records", post(examapi::create_exam_record))
-        .route("/exam-records/:id", get(examapi::get_exam_record))
-        .route("/exam-records/:id", put(examapi::update_exam_record))
-        .route("/exam-records/:id", delete(examapi::delete_exam_record))
+        .route("/exam-records/{id}", get(examapi::get_exam_record))
+        .route("/exam-records/{id}", put(examapi::update_exam_record))
+        .route("/exam-records/{id}", delete(examapi::delete_exam_record))
         .route("/exam-records/query", get(examapi::query_exam_records))
         .layer(from_fn(auth::auth_middleware));
 
     // 作业相关路由 - 需要用户认证
     let homework_routes = Router::new()
         .route("/homework", post(homeworkapi::create_homework))
-        .route("/homework/:id", get(homeworkapi::get_homework))
-        .route("/homework/:id", put(homeworkapi::update_homework))
-        .route("/homework/:id", delete(homeworkapi::delete_homework))
+        .route("/homework/{id}", get(homeworkapi::get_homework))
+        .route("/homework/{id}", put(homeworkapi::update_homework))
+        .route("/homework/{id}", delete(homeworkapi::delete_homework))
         .route("/homework/query", get(homeworkapi::query_homework))
-        .route("/homework/:id/grade", put(homeworkapi::grade_homework))
+        .route("/homework/{id}/grade", put(homeworkapi::grade_homework))
         .layer(from_fn(auth::auth_middleware));
 
     // 管理员路由 - 需要管理员权限
