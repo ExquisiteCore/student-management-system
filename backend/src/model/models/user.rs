@@ -37,6 +37,7 @@ impl From<String> for UserRole {
     fn from(s: String) -> Self {
         match s.to_lowercase().as_str() {
             "teacher" => UserRole::Teacher,
+            "student" => UserRole::Student,
             _ => UserRole::Student,
         }
     }

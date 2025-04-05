@@ -247,8 +247,8 @@ pub async fn admin_middleware(req: Request, next: Next) -> Result<Response, Resp
                 // 验证令牌
                 match verify_token(token) {
                     Ok(claims) => {
-                        // 检查用户角色
-                        if claims.role == "admin" {
+                        // 检查用户角色 - 允许admin和teacher角色访问管理员功能
+                        if claims.role == "admin" || claims.role == "teacher" {
                             // 将用户信息添加到请求扩展中
                             let mut req = req;
                             req.extensions_mut().insert(claims);
