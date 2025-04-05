@@ -24,6 +24,7 @@ log = "0.4"
 tauri = { version = "2", features = [] }
 tauri-plugin-log = "2"
 tauri-plugin-upload = "2"
+tauri-plugin-http = "2"
 #异步
 tokio = { version = "1", features = ["full"] }
 #http

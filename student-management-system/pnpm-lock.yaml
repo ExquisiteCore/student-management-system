@@ -14,6 +14,15 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.1.8
         version: 1.1.8(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@tauri-apps/plugin-http':
+        specifier: ^2.4.3
+        version: 2.4.3
+      '@tauri-apps/plugin-log':
+        specifier: ^2.3.1
+        version: 2.3.1
+      '@tauri-apps/plugin-upload':
+        specifier: ^2.2.1
+        version: 2.2.1
       axios:
         specifier: ^1.8.4
         version: 1.8.4
@@ -640,6 +649,9 @@ packages:
   '@tailwindcss/postcss@4.1.1':
     resolution: {integrity: sha512-GX9AEM+msH0i2Yh1b6CuDRaZRo3kmbvIrLbSfvJ53C3uaAgsQ//fTQAh9HMQ6t1a9zvoUptlYqG//plWsBQTCw==}
 
+  '@tauri-apps/api@2.4.1':
+    resolution: {integrity: sha512-5sYwZCSJb6PBGbBL4kt7CnE5HHbBqwH+ovmOW6ZVju3nX4E3JX6tt2kRklFEH7xMOIwR0btRkZktuLhKvyEQYg==}
+
   '@tauri-apps/cli-darwin-arm64@2.4.1':
     resolution: {integrity: sha512-QME7s8XQwy3LWClTVlIlwXVSLKkeJ/z88pr917Mtn9spYOjnBfsgHAgGdmpWD3NfJxjg7CtLbhH49DxoFL+hLg==}
     engines: {node: '>= 10'}
@@ -710,6 +722,15 @@ packages:
     resolution: {integrity: sha512-9Ta81jx9+57FhtU/mPIckDcOBtPTUdKM75t4+aA0X84b8Sclb0jy1xA8NplmcRzp2fsfIHNngU2NiRxsW5+yOQ==}
     engines: {node: '>= 10'}
     hasBin: true
+
+  '@tauri-apps/plugin-http@2.4.3':
+    resolution: {integrity: sha512-Us8X+FikzpaZRNr4kH4HLwyXascHbM42p6LxAqRTQnHPrrqp1usaH4vxWAZalPvTbHJ3gBEMJPHusFJgtjGJjA==}
+
+  '@tauri-apps/plugin-log@2.3.1':
+    resolution: {integrity: sha512-nnKGHENWt7teqvUlIKxd6bp2wCUrrLvCvajN6CWbyrHBNKPi/pyKELzD511siEMDEdndbiZ/GEhiK0xBtZopRg==}
+
+  '@tauri-apps/plugin-upload@2.2.1':
+    resolution: {integrity: sha512-2EyVhJYLAp2mJH0UzO3QGU0vPk/YWvAfdI2wXbczyzEZY/AZVa9wConyB1TV/NGhyJRim4LwWgkmnEvcKLkECw==}
 
   '@tybys/wasm-util@0.9.0':
     resolution: {integrity: sha512-6+7nlbMVX/PVDCwaIQ8nTOPveOcFLSt8GcXdx8hD0bt39uWxYT88uXzqTd4fTvqta7oeUJqudepapKNt2DYJFw==}
@@ -2542,6 +2563,8 @@ snapshots:
       postcss: 8.5.3
       tailwindcss: 4.1.1
 
+  '@tauri-apps/api@2.4.1': {}
+
   '@tauri-apps/cli-darwin-arm64@2.4.1':
     optional: true
 
@@ -2588,6 +2611,18 @@ snapshots:
       '@tauri-apps/cli-win32-arm64-msvc': 2.4.1
       '@tauri-apps/cli-win32-ia32-msvc': 2.4.1
       '@tauri-apps/cli-win32-x64-msvc': 2.4.1
+
+  '@tauri-apps/plugin-http@2.4.3':
+    dependencies:
+      '@tauri-apps/api': 2.4.1
+
+  '@tauri-apps/plugin-log@2.3.1':
+    dependencies:
+      '@tauri-apps/api': 2.4.1
+
+  '@tauri-apps/plugin-upload@2.2.1':
+    dependencies:
+      '@tauri-apps/api': 2.4.1
 
   '@tybys/wasm-util@0.9.0':
     dependencies:
@@ -4078,6 +4113,8 @@ snapshots:
     dependencies:
       '@radix-ui/react-slot': 1.1.2(@types/react@19.1.0)(react@19.1.0)
       '@radix-ui/react-tooltip': 1.1.8(@types/react-dom@19.1.1(@types/react@19.1.0))(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@tauri-apps/plugin-http': 2.4.3
+      '@tauri-apps/plugin-upload': 2.2.1
       axios: 1.8.4
       class-variance-authority: 0.7.1
       clsx: 2.1.1
