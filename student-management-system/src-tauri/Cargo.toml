@@ -14,12 +14,32 @@ rust-version = "1.77.2"
 name = "app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
-[build-dependencies]
-tauri-build = { version = "2.1.1" }
-
 [dependencies]
+#序列化
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
+#日志
 log = "0.4"
-tauri = { version = "2.4.1" }
-tauri-plugin-log = "2.0.0-rc"
+#tuari
+tauri = { version = "2", features = [] }
+tauri-plugin-log = "2"
+tauri-plugin-upload = "2"
+#异步
+tokio = { version = "1", features = ["full"] }
+#http
+reqwest = { version = "0.12.15", features = ["json"] }
+
+
+#编译配置
+[profile.dev]
+incremental = true # 以更小的步骤编译你的二进制文件。
+
+[profile.release]
+codegen-units = 1 # 允许 LLVM 进行更好的优化。
+lto = true        # 启用链接时优化。
+opt-level = "s"   # 优先考虑二进制文件大小。如果优先考虑速度，请使用 `3`。
+panic = "abort"   # 通过禁用恐慌处理程序提高性能。
+strip = true      # 确保删除调试符号。
+
+[build-dependencies]
+tauri-build = { version = "2.1.1", features = [] }
