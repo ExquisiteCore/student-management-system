@@ -45,7 +45,6 @@ export default function Home() {
         const authData = await store.get("auth") as AuthState;
         if (authData && authData.token && authData.user) {
           setIsLoggedIn(true);
-          info('用户已登录', authData);
           setUser({
             name: authData.user.username,
             role: authData.user.role,

@@ -24,7 +24,8 @@ pub fn create_routes() -> Router<Arc<Pool<Postgres>>> {
     let public_routes = Router::new()
         .route("/users/register", post(userapi::register_user))
         .route("/users/login", post(userapi::login_user))
-        .route("/auth/refresh", post(auth::refresh_token_handler));
+        .route("/auth/refresh", post(auth::refresh_token_handler))
+        .route("/students", get(studentapi::get_all_students));
 
     // 学生相关路由 - 需要用户认证
     let student_routes = Router::new()

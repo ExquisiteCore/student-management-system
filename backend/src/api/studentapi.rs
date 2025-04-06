@@ -99,3 +99,19 @@ pub async fn get_students_by_grade(
         }
     }
 }
+
+///获取所有学生列表
+pub async fn get_all_students(
+    State(pool): State<Arc<Pool<Postgres>>>,
+) -> Result<Json<Vec<Student>>, (StatusCode, String)> {
+    match Student::find_all(&pool).await {
+        Ok(students) => Ok(Json(students)),
+        Err(e) => {
+            eprintln!("获取学生列表失败: {}", e);
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "获取学生列表失败".to_string(),
+            ))
+        }
+    }
+}
