@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import { enableLogging } from "@/lib/log";
+import { enableLogging, info } from "@/lib/log";
 
 export function LoggingInitializer() {
   const [error, setError] = useState<Error | null>(null);
@@ -11,7 +11,7 @@ export function LoggingInitializer() {
       try {
         await enableLogging();
       } catch (err) {
-        console.error("日志初始化失败:", err);
+        info("日志初始化失败:", err);
         setError(err instanceof Error ? err : new Error(String(err)));
       }
     };

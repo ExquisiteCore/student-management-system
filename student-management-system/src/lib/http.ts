@@ -1,6 +1,7 @@
 import { fetch } from "@tauri-apps/plugin-http";
 import { Store } from "@tauri-apps/plugin-store";
 import { jwtDecode } from "jwt-decode";
+import { info } from "./log";
 
 // 导入Response类型
 type Response = globalThis.Response;
@@ -74,7 +75,7 @@ async function getAuthData(): Promise<AuthData | null> {
     const authData = await store.get("auth");
     return authData as AuthData;
   } catch (error) {
-    console.error("获取认证信息失败:", error);
+    info("获取认证信息失败:", error);
     return null;
   }
 }
@@ -86,7 +87,7 @@ async function saveAuthData(authData: Record<string, unknown>): Promise<void> {
     await store.set("auth", authData);
     await store.save();
   } catch (error) {
-    console.error("保存认证信息失败:", error);
+    info("保存认证信息失败:", error);
   }
 }
 
@@ -124,7 +125,7 @@ async function refreshToken(): Promise<string | null> {
     }
     return null;
   } catch (error) {
-    console.error("刷新token失败:", error);
+    info("刷新token失败:", error);
     return null;
   }
 }
@@ -141,7 +142,7 @@ function shouldRefreshToken(token: string): boolean {
     // 如果token将在30分钟内过期，则刷新
     return decoded.exp - now < 30 * 60 && decoded.exp > now;
   } catch (e) {
-    console.error("解析token失败:", e);
+    info("解析token失败:", e);
     return false;
   }
 }
@@ -158,7 +159,7 @@ function isTokenInRefreshWindow(token: string): boolean {
     // 如果token已过期但在刷新窗口内（过期后30分钟内）
     return decoded.exp < now && now - decoded.exp <= 30 * 60;
   } catch (e) {
-    console.error("解析token失败:", e);
+    info("解析token失败:", e);
     return false;
   }
 }
@@ -186,7 +187,7 @@ async function addAuthHeader(
 
     return { ...headers, Authorization: `Bearer ${token}` };
   } catch (e) {
-    console.error("处理认证信息失败:", e);
+    info("处理认证信息失败:", e);
     return headers;
   }
 }
@@ -211,7 +212,7 @@ async function handleResponse<T>(
         errorMessage = (errorData as { message: string }).message;
       }
     } catch (e) {
-      console.error("解析响应数据失败:", e);
+      info("解析响应数据失败:", e);
       // 如果无法解析JSON，使用状态文本
       errorMessage = response.statusText || errorMessage;
     }
@@ -281,7 +282,7 @@ async function handleError(
           }
         }
       } catch (e) {
-        console.error("处理token刷新失败:", e);
+        info("处理token刷新失败:", e);
       }
 
       errorMessage = "未授权，请重新登录";
@@ -326,7 +327,7 @@ async function handleError(
   enhancedError.status = typeof errorCode === "number" ? errorCode : undefined;
   enhancedError.data = { code: errorCode, url, message: errorMessage };
 
-  console.error(`API请求错误 [${errorCode}]: ${errorMessage}`, { url });
+  info(`API请求错误 [${errorCode}]: ${errorMessage}`, { url });
   throw enhancedError;
 }
 
