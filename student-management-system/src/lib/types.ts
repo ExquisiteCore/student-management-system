@@ -8,6 +8,7 @@ export interface User {
   email: string;
   id: UUID;
   username: string;
+  role: string;
 }
 
 // 登录响应接口

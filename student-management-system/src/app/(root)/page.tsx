@@ -45,9 +45,10 @@ export default function Home() {
         const authData = await store.get("auth") as AuthState;
         if (authData && authData.token && authData.user) {
           setIsLoggedIn(true);
+          info('用户已登录', authData);
           setUser({
             name: authData.user.username,
-            role: "教师", // 假设所有用户都是教师角色
+            role: authData.user.role,
             avatar: authData.user.avatar_url
           });
         } else {
@@ -70,7 +71,7 @@ export default function Home() {
           <div className="flex items-center gap-3 bg-card p-3 rounded-lg shadow-sm border">
             <div className="relative">
               <div className={`w-10 h-10 rounded-full ${imageError ? 'bg-primary/10 flex items-center justify-center text-primary' : 'bg-primary/10 overflow-hidden'}`}>
-                {imageError ? (
+                {imageError || !user.avatar ? (
                   <User size={24} />
                 ) : (
                   <Image
@@ -84,7 +85,7 @@ export default function Home() {
                 )}
               </div>
               <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[10px] text-primary-foreground font-medium">
-                {user.role === "教师" ? "师" : "生"}
+                {user.role === "student" ? "师" : "生"}
               </div>
             </div>
             <div>
