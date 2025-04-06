@@ -3,7 +3,7 @@
 import { PATHS } from "@/lib/path";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { post } from "@/lib/http";
+//import { post } from "@/lib/http";
 import {
   Card,
   CardDescription,
@@ -18,6 +18,7 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { info } from "@/lib/log";
+import { post } from "@/lib/http";
 
 const formSchema = z.object({
   username: z.string().min(5, { message: "用户名至少需要5个字符" }),
@@ -41,10 +42,17 @@ export default function RegisterPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       // 准备注册数据
-      const registerData = values;
+      const registerData = {
+        ...values,
+        role: "student"
+      };
+
+      info('发送注册请求:', { ...registerData, password: '***' });
 
       // 调用注册API，指定返回类型并确保withToken为false
-      await post<{ message: string }>("/users/register", registerData, { withToken: false });
+      const response = await post<{ message: string }>("/users/register", registerData, { withToken: false });
+
+      info('注册成功:', response);
       // 注册成功后跳转到登录页面
       router.push(PATHS.AUTH_SIGN_IN);
     } catch (error) {

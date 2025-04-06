@@ -51,7 +51,7 @@ export default function SignInPage() {
         };
 
         // 使用Tauri的Store API保存认证信息
-        const store = await Store.get("auth.dat");
+        const store = await Store.load("auth.dat");
         // 添加空值检查，确保store不为null
         if (store) {
           await store.set("auth", authState);

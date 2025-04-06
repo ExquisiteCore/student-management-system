@@ -4,47 +4,104 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import Link from "next/link";
 import Image from "next/image";
-import { BarChart3, BookOpen, GraduationCap, ListChecks, PlusCircle, Search, UserPlus, Users, User } from "lucide-react";
-import { useState } from "react";
+import { BarChart3, BookOpen, GraduationCap, ListChecks, PlusCircle, Search, UserPlus, Users, User, LogIn } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Store } from "@tauri-apps/plugin-store";
+import { PATHS } from "@/lib/path";
+import { AuthState } from "@/lib/types";
+import { useRouter } from "next/navigation";
+import { info } from "@/lib/log";
 
 export default function Home() {
-  // 模拟用户数据，实际项目中应该从API或状态管理中获取
-  const [user] = useState({
-    name: "欢老师",
-    role: "教师",
-    avatar: "https://avatars.githubusercontent.com/u/59426890?s=40&v=4"
-  });
+  const router = useRouter();
+  // 用户登录状态
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // 用户数据
+  const [user, setUser] = useState<{
+    name: string;
+    role: string;
+    avatar: string;
+  } | null>(null);
 
   // 处理头像加载错误
   const [imageError, setImageError] = useState(false);
 
+  // 检查用户登录状态
+  useEffect(() => {
+    async function checkAuthStatus() {
+      try {
+        const store = await Store.get("auth.dat");
+        if (!store) {
+          setIsLoggedIn(false);
+          return;
+        }
+
+        const hasAuth = await store.has("auth");
+        if (!hasAuth) {
+          setIsLoggedIn(false);
+          return;
+        }
+
+        const authData = await store.get("auth") as AuthState;
+        if (authData && authData.token && authData.user) {
+          setIsLoggedIn(true);
+          setUser({
+            name: authData.user.username,
+            role: "教师", // 假设所有用户都是教师角色
+            avatar: authData.user.avatar_url
+          });
+        } else {
+          setIsLoggedIn(false);
+        }
+      } catch (error) {
+        info('获取认证信息失败:', error);
+        setIsLoggedIn(false);
+      }
+    }
+
+    checkAuthStatus();
+  }, []);
+
   return (
     <div className="container mx-auto px-4 py-8 relative">
-      {/* 用户头像卡片 - 右上角 */}
-      <div className="absolute top-4 right-4 flex items-center gap-3 bg-card p-3 rounded-lg shadow-sm border z-10">
-        <div className="relative">
-          <div className={`w-10 h-10 rounded-full ${imageError ? 'bg-primary/10 flex items-center justify-center text-primary' : 'bg-primary/10 overflow-hidden'}`}>
-            {imageError ? (
-              <User size={24} />
-            ) : (
-              <Image
-                src={user.avatar}
-                alt={`${user.name}的头像`}
-                width={40}
-                height={40}
-                className="w-full h-full object-cover"
-                onError={() => setImageError(true)}
-              />
-            )}
+      {/* 用户头像卡片或登录按钮 - 右上角 */}
+      <div className="absolute top-4 right-4 z-10">
+        {isLoggedIn && user ? (
+          <div className="flex items-center gap-3 bg-card p-3 rounded-lg shadow-sm border">
+            <div className="relative">
+              <div className={`w-10 h-10 rounded-full ${imageError ? 'bg-primary/10 flex items-center justify-center text-primary' : 'bg-primary/10 overflow-hidden'}`}>
+                {imageError ? (
+                  <User size={24} />
+                ) : (
+                  <Image
+                    src={user.avatar}
+                    alt={`${user.name}的头像`}
+                    width={40}
+                    height={40}
+                    className="w-full h-full object-cover"
+                    onError={() => setImageError(true)}
+                  />
+                )}
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[10px] text-primary-foreground font-medium">
+                {user.role === "教师" ? "师" : "生"}
+              </div>
+            </div>
+            <div>
+              <p className="font-medium text-sm">{user.name}</p>
+              <p className="text-xs text-muted-foreground">{user.role}</p>
+            </div>
           </div>
-          <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[10px] text-primary-foreground font-medium">
-            {user.role === "教师" ? "师" : "生"}
-          </div>
-        </div>
-        <div>
-          <p className="font-medium text-sm">{user.name}</p>
-          <p className="text-xs text-muted-foreground">{user.role}</p>
-        </div>
+        ) : (
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 bg-card shadow-sm border"
+            onClick={() => router.push(PATHS.AUTH_SIGN_IN)}
+          >
+            <LogIn size={18} />
+            <span>登录</span>
+          </Button>
+        )}
       </div>
       {/* 页面标题 */}
       <div className="mb-8">

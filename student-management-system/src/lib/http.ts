@@ -51,11 +51,18 @@ let authStore: Store | null = null;
 // 初始化存储
 async function initStore(): Promise<Store> {
   if (!authStore) {
-    authStore = await Store.get(AUTH_STORE_PATH);
-  }
-  // 确保返回非空的Store实例
-  if (!authStore) {
-    throw new Error("无法初始化存储");
+    try {
+      authStore = await Store.get(AUTH_STORE_PATH);
+      // 确保返回非空的Store实例
+      if (!authStore) {
+        // 如果Store.get返回undefined，创建一个新的Store实例
+        authStore = await Store.load(AUTH_STORE_PATH);
+      }
+    } catch (error) {
+      info("Store初始化错误:", error);
+      // 如果获取失败，创建一个新的Store实例
+      authStore = await Store.load(AUTH_STORE_PATH);
+    }
   }
   return authStore;
 }
@@ -69,11 +76,22 @@ interface AuthData {
 async function getAuthData(): Promise<AuthData | null> {
   try {
     const store = await initStore();
-    const hasAuth = await store.has("auth");
-    if (!hasAuth) return null;
+    // 先检查store是否有效
+    if (!store) {
+      info("存储实例无效");
+      return null;
+    }
 
-    const authData = await store.get("auth");
-    return authData as AuthData;
+    try {
+      const hasAuth = await store.has("auth");
+      if (!hasAuth) return null;
+
+      const authData = await store.get("auth");
+      return authData as AuthData;
+    } catch (storeError) {
+      info("存储操作失败:", storeError);
+      return null;
+    }
   } catch (error) {
     info("获取认证信息失败:", error);
     return null;
@@ -84,8 +102,18 @@ async function getAuthData(): Promise<AuthData | null> {
 async function saveAuthData(authData: Record<string, unknown>): Promise<void> {
   try {
     const store = await initStore();
-    await store.set("auth", authData);
-    await store.save();
+    // 确保store实例有效
+    if (!store) {
+      info("存储实例无效，无法保存认证信息");
+      return;
+    }
+
+    try {
+      await store.set("auth", authData);
+      await store.save();
+    } catch (storeError) {
+      info("存储操作失败:", storeError);
+    }
   } catch (error) {
     info("保存认证信息失败:", error);
   }
@@ -99,31 +127,41 @@ async function refreshToken(): Promise<string | null> {
 
     const oldToken = authData.token;
 
-    // 调用刷新接口
-    const response = await fetch(
-      `${BASE_API_URL}${BASE_API_URL.endsWith("/") ? "" : "/"}auth/refresh`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${oldToken}`,
-          "Content-Type": "application/json",
-        },
+    try {
+      // 调用刷新接口
+      const response = await fetch(
+        `${BASE_API_URL}${BASE_API_URL.endsWith("/") ? "" : "/"}auth/refresh`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${oldToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`刷新Token失败: ${response.status}`);
       }
-    );
 
-    if (!response.ok) {
-      throw new Error(`刷新Token失败: ${response.status}`);
+      const data = await response.json();
+      const newToken = data.token;
+
+      if (newToken) {
+        try {
+          const newAuthData = { ...authData, token: newToken };
+          await saveAuthData(newAuthData);
+          return newToken;
+        } catch (saveError) {
+          info("保存新token失败:", saveError);
+          return null;
+        }
+      }
+      return null;
+    } catch (fetchError) {
+      info("刷新token请求失败:", fetchError);
+      return null;
     }
-
-    const data = await response.json();
-    const newToken = data.token;
-
-    if (newToken) {
-      const newAuthData = { ...authData, token: newToken };
-      await saveAuthData(newAuthData);
-      return newToken;
-    }
-    return null;
   } catch (error) {
     info("刷新token失败:", error);
     return null;
@@ -197,19 +235,44 @@ async function handleResponse<T>(
   response: Response,
   responseType: ResponseType = ResponseType.JSON
 ): Promise<T> {
+  info("处理响应:", {
+    status: response.status,
+    statusText: response.statusText,
+    url: response.url,
+    ok: response.ok,
+  });
+
   if (!response.ok) {
     let errorMessage = "请求失败";
     let errorData: unknown = null;
 
     try {
-      errorData = await response.json();
-      // 添加类型守卫确保errorData是对象且具有message属性
-      if (
-        errorData &&
-        typeof errorData === "object" &&
-        "message" in errorData
-      ) {
-        errorMessage = (errorData as { message: string }).message;
+      // 克隆响应以避免消耗响应流
+      const clonedResponse = response.clone();
+      try {
+        errorData = await clonedResponse.json();
+        info("错误响应数据:", errorData);
+        // 添加类型守卫确保errorData是对象且具有message属性
+        if (
+          errorData &&
+          typeof errorData === "object" &&
+          "message" in errorData
+        ) {
+          errorMessage = (errorData as { message: string }).message;
+        }
+      } catch (jsonError) {
+        info("解析响应JSON失败:", jsonError);
+        // 如果无法解析为JSON，尝试获取文本内容
+        try {
+          const textContent = await response.text();
+          info("响应文本内容:", textContent);
+          errorData = { text: textContent };
+          if (textContent) {
+            errorMessage = textContent;
+          }
+        } catch (textError) {
+          info("解析响应文本失败:", textError);
+        }
       }
     } catch (e) {
       info("解析响应数据失败:", e);
@@ -253,6 +316,9 @@ async function handleError(
 ): Promise<never> {
   let errorMessage = "请求失败";
   let errorCode: string | number = "UNKNOWN_ERROR";
+
+  // 记录原始错误信息，帮助调试
+  info("原始错误信息:", error);
 
   if (error instanceof Error) {
     // 使用类型守卫而不是类型断言
@@ -305,7 +371,23 @@ async function handleError(
       }`;
       errorCode = httpError.status;
     } else {
+      // 处理没有status属性的Error对象
       errorMessage = error.message || errorMessage;
+      // 检查错误消息中是否包含特定的网络错误关键词
+      if (error.message) {
+        const msg = error.message.toLowerCase();
+        if (
+          msg.includes("failed to fetch") ||
+          msg.includes("network") ||
+          msg.includes("connection")
+        ) {
+          errorMessage = "网络错误，无法连接到服务器，请检查网络连接";
+          errorCode = "NETWORK_ERROR";
+        } else if (msg.includes("timeout")) {
+          errorMessage = "请求超时，请检查网络连接";
+          errorCode = "REQUEST_TIMEOUT";
+        }
+      }
     }
   } else if (typeof error === "object" && error !== null && "type" in error) {
     // 使用类型守卫处理网络错误
@@ -320,6 +402,10 @@ async function handleError(
       errorMessage = "网络错误，无法连接到服务器，请检查网络连接";
       errorCode = "NETWORK_ERROR";
     }
+  } else {
+    // 处理其他类型的错误
+    errorMessage = "未知错误，请检查网络连接或联系管理员";
+    info("未知类型的错误:", error);
   }
 
   // 创建带有更多信息的错误对象
@@ -422,9 +508,18 @@ async function request<T>(
 
   // 执行请求并处理响应
   try {
+    info(`发送${method}请求到: ${fullUrl}`, {
+      method,
+      headers: requestConfig.headers,
+      hasBody: !!requestConfig.body,
+    });
+
     const response = await fetch(fullUrl, requestConfig);
     return await handleResponse<T>(response, responseType);
   } catch (error) {
+    // 记录原始错误
+    info(`请求失败 (${method} ${fullUrl}):`, error);
+
     // 创建重试请求函数
     const retryRequest = async () =>
       request<T>(method, url, data, {
@@ -435,7 +530,8 @@ async function request<T>(
         },
       });
 
-    return await handleError(error, url, config, retryRequest);
+    // 传递完整URL而不是原始URL给错误处理函数
+    return await handleError(error, fullUrl, config, retryRequest);
   }
 }
 
