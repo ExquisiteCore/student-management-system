@@ -3,11 +3,49 @@
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import Link from "next/link";
-import { BarChart3, BookOpen, GraduationCap, ListChecks, PlusCircle, Search, UserPlus, Users } from "lucide-react";
+import Image from "next/image";
+import { BarChart3, BookOpen, GraduationCap, ListChecks, PlusCircle, Search, UserPlus, Users, User } from "lucide-react";
+import { useState } from "react";
 
 export default function Home() {
+  // 模拟用户数据，实际项目中应该从API或状态管理中获取
+  const [user] = useState({
+    name: "欢老师",
+    role: "教师",
+    avatar: "https://avatars.githubusercontent.com/u/59426890?s=40&v=4"
+  });
+
+  // 处理头像加载错误
+  const [imageError, setImageError] = useState(false);
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 relative">
+      {/* 用户头像卡片 - 右上角 */}
+      <div className="absolute top-4 right-4 flex items-center gap-3 bg-card p-3 rounded-lg shadow-sm border z-10">
+        <div className="relative">
+          <div className={`w-10 h-10 rounded-full ${imageError ? 'bg-primary/10 flex items-center justify-center text-primary' : 'bg-primary/10 overflow-hidden'}`}>
+            {imageError ? (
+              <User size={24} />
+            ) : (
+              <Image
+                src={user.avatar}
+                alt={`${user.name}的头像`}
+                width={40}
+                height={40}
+                className="w-full h-full object-cover"
+                onError={() => setImageError(true)}
+              />
+            )}
+          </div>
+          <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[10px] text-primary-foreground font-medium">
+            {user.role === "教师" ? "师" : "生"}
+          </div>
+        </div>
+        <div>
+          <p className="font-medium text-sm">{user.name}</p>
+          <p className="text-xs text-muted-foreground">{user.role}</p>
+        </div>
+      </div>
       {/* 页面标题 */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">学生管理系统</h1>
