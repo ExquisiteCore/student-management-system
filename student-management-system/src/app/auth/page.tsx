@@ -42,12 +42,13 @@ export default function SignInPage() {
       const data = await post<LoginResponse>("/users/login", values, { withToken: false });
       // 处理返回的token和用户数据
       if (data && data.token && data.user) {
-        const { token, user } = data;
+        const { token, user, student } = data;
 
         // 存储用户信息，使用AuthState类型
         const authState: AuthState = {
           token,
-          user
+          user,
+          student
         };
 
         // 使用Tauri的Store API保存认证信息
