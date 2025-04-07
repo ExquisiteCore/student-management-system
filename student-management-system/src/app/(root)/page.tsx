@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import Link from "next/link";
 import Image from "next/image";
-import { BarChart3, BookOpen, GraduationCap, ListChecks, PlusCircle, Search, UserPlus, Users, User, LogIn } from "lucide-react";
+import { BarChart3, BookOpen, GraduationCap, ListChecks, PlusCircle, Search, Users, User, LogIn } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Store } from "@tauri-apps/plugin-store";
 import { PATHS } from "@/lib/path";
 import { AuthState } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { info } from "@/lib/log";
+import { get } from "@/lib/http";
 
 export default function Home() {
   const router = useRouter();
@@ -23,8 +24,25 @@ export default function Home() {
     avatar: string;
   } | null>(null);
 
+  // 学生总数
+  const [studentCount, setStudentCount] = useState(0);
+
   // 处理头像加载错误
   const [imageError, setImageError] = useState(false);
+
+  // 获取学生列表
+  useEffect(() => {
+    async function fetchStudents() {
+      try {
+        const students = await get<Array<Record<string, unknown>>>("/students");
+        setStudentCount(students.length);
+      } catch (error) {
+        info('获取学生列表失败:', error);
+      }
+    }
+
+    fetchStudents();
+  }, []);
 
   // 检查用户登录状态
   useEffect(() => {
@@ -134,10 +152,6 @@ export default function Home() {
         <div className="bg-card p-6 rounded-lg shadow-sm border">
           <h2 className="text-xl font-semibold mb-4">快速操作</h2>
           <div className="flex flex-wrap gap-3">
-            <Button className="gap-2">
-              <UserPlus size={18} />
-              添加学生
-            </Button>
             <Button variant="outline" className="gap-2">
               <Search size={18} />
               查找学生
@@ -174,7 +188,7 @@ export default function Home() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium opacity-80">学生总数</p>
-              <h3 className="text-3xl font-bold mt-2">256</h3>
+              <h3 className="text-3xl font-bold mt-2">{studentCount}</h3>
             </div>
             <Users className="opacity-80" size={24} />
           </div>
@@ -183,7 +197,7 @@ export default function Home() {
         <div className="bg-secondary text-secondary-foreground p-6 rounded-lg shadow-sm">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-sm font-medium opacity-80">班级数量</p>
+              <p className="text-sm font-medium opacity-80">作业数量</p>
               <h3 className="text-3xl font-bold mt-2">12</h3>
             </div>
             <GraduationCap className="opacity-80" size={24} />
@@ -203,8 +217,8 @@ export default function Home() {
         <div className="bg-card p-6 rounded-lg shadow-sm border">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">今日出勤率</p>
-              <h3 className="text-3xl font-bold mt-2">98%</h3>
+              <p className="text-sm font-medium text-muted-foreground">试卷总数</p>
+              <h3 className="text-3xl font-bold mt-2">16</h3>
             </div>
             <ListChecks className="text-muted-foreground" size={24} />
           </div>
