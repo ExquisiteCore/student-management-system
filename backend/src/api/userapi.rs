@@ -9,6 +9,7 @@ use std::sync::Arc;
 
 use crate::error::{AppError, AppErrorType};
 use crate::middleware::auth;
+use crate::model::models::student::Student;
 use crate::model::models::user::{CreateUserRequest, LoginRequest, User};
 
 /// 用户注册API
@@ -70,12 +71,19 @@ pub async fn login_user(
         Ok(Some(user)) => {
             // 生成JWT令牌
             let token = auth::generate_token(&user)?;
-
-            // 返回用户信息和令牌
-            Ok(Json(serde_json::json!({
+            // 检查是否需要获取学生信息
+            let mut response = serde_json::json!({
                 "user": user,
                 "token": token
-            })))
+            });
+            // 如果角色是student，获取学生信息
+            if user.role.to_lowercase() == "student" {
+                if let Ok(Some(student)) = Student::find_by_user_id(&pool, user.id).await {
+                    response["student"] = serde_json::json!(student);
+                }
+            }
+            // 返回用户信息和令牌
+            Ok(Json(response))
         }
         Ok(None) => Err(AppError::new_message(
             "用户名/邮箱或密码错误",
