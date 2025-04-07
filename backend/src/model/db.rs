@@ -213,6 +213,24 @@ async fn init_db(pool: &PgPool) -> Result<(), sqlx::Error> {
     .execute(pool)
     .await?;
 
+    // 创建活动记录表（记录系统活动）
+    sqlx::query(
+        "
+        CREATE TABLE IF NOT EXISTS activities (
+            id UUID PRIMARY KEY,
+            activity_type VARCHAR(50) NOT NULL,
+            description TEXT NOT NULL,
+            user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            user_name VARCHAR(100) NOT NULL,
+            user_role VARCHAR(20) NOT NULL,
+            resource_id UUID,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+    ",
+    )
+    .execute(pool)
+    .await?;
+
     info!("数据库初始化完成");
     Ok(())
 }
@@ -229,7 +247,7 @@ async fn is_db_empty(pool: &PgPool) -> Result<bool, sqlx::Error> {
         "
         SELECT COUNT(*) as count FROM information_schema.tables 
         WHERE table_schema = 'public' 
-        AND table_name IN ('users', 'students', 'courses', 'course_records', 'exams', 'exam_records', 'homework')
+        AND table_name IN ('users', 'students', 'courses', 'course_records', 'exams', 'exam_records', 'homework', 'activities')
         ",
     )
     .fetch_one(pool)

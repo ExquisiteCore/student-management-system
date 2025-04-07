@@ -1,6 +1,7 @@
 //! 数据库模型定义
 //!
 //! 包含所有与数据库表对应的结构体定义
+pub mod activity;
 pub mod course;
 pub mod course_record;
 pub mod exam;

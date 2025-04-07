@@ -1,6 +1,7 @@
 //! API路由模块
 //!
 //! 包含所有API端点的路由定义
+mod activityapi;
 mod courseapi;
 mod examapi;
 mod homeworkapi;
@@ -89,6 +90,11 @@ pub fn create_routes() -> Router<Arc<Pool<Postgres>>> {
         .route("/homework/{id}/grade", put(homeworkapi::grade_homework))
         .layer(from_fn(auth::auth_middleware));
 
+    // 活动记录相关路由 - 需要用户认证
+    let activity_routes = Router::new()
+        .route("/activities", get(activityapi::get_activities))
+        .route("/activities", post(activityapi::create_activity));
+
     // 管理员路由 - 需要管理员权限
     let admin_routes = Router::new().layer(from_fn(auth::admin_middleware));
 
@@ -98,6 +104,7 @@ pub fn create_routes() -> Router<Arc<Pool<Postgres>>> {
         .merge(course_routes)
         .merge(exam_routes)
         .merge(homework_routes)
+        .merge(activity_routes)
         .merge(admin_routes)
         .merge(public_routes)
 }
