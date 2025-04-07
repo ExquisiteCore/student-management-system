@@ -48,7 +48,7 @@ export default function Home() {
           setUser({
             name: authData.user.username,
             role: authData.user.role,
-            avatar: authData.user.avatar_url
+            avatar: authData.user.avatar_url || ""
           });
         } else {
           setIsLoggedIn(false);

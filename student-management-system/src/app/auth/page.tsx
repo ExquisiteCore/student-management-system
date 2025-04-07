@@ -22,7 +22,7 @@ import { info } from "@/lib/log";
 import { Store } from "@tauri-apps/plugin-store";
 
 const formSchema = z.object({
-  username_or_email: z.string().min(5, { message: "用户名或邮箱至少需要5个字符" }),
+  username_or_email: z.string().min(2, { message: "用户名或邮箱至少需要5个字符" }),
   password: z.string().min(6, { message: "密码至少需要6个字符" })
 });
 

@@ -32,6 +32,7 @@ interface RequestConfig {
   responseType?: ResponseType;
   timeout?: number;
   withToken?: boolean;
+  token?: string;
   body?: string | FormData | Blob;
   [key: string]: unknown;
 }
@@ -205,25 +206,31 @@ function isTokenInRefreshWindow(token: string): boolean {
 // 添加认证头
 async function addAuthHeader(
   headers: Record<string, string> = {},
-  withToken: boolean = true
+  withToken: boolean = true,
+  token?: string
 ): Promise<Record<string, string>> {
   if (!withToken) return headers;
 
   try {
+    // 如果提供了token，优先使用提供的token
+    if (token) {
+      return { ...headers, Authorization: `Bearer ${token}` };
+    }
+
     const authData = await getAuthData();
     if (!authData || !authData.token) return headers;
 
-    const token = authData.token;
+    const storedToken = authData.token;
 
     // 检查token是否即将过期
-    if (shouldRefreshToken(token)) {
+    if (shouldRefreshToken(storedToken)) {
       const newToken = await refreshToken();
       if (newToken) {
         return { ...headers, Authorization: `Bearer ${newToken}` };
       }
     }
 
-    return { ...headers, Authorization: `Bearer ${token}` };
+    return { ...headers, Authorization: `Bearer ${storedToken}` };
   } catch (e) {
     info("处理认证信息失败:", e);
     return headers;
@@ -452,7 +459,8 @@ async function request<T>(
       "Content-Type": "application/json",
       ...headers,
     },
-    withToken
+    withToken,
+    config.token
   );
 
   // 构建请求配置

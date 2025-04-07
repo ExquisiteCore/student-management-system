@@ -4,15 +4,15 @@ import { UUID } from "crypto";
 
 // 用户信息接口
 export interface User {
-  avatar_url: string;
-  email: string;
   id: UUID;
   username: string;
+  email: string;
+  display_name?: string;
+  avatar_url?: string;
+  bio?: string;
   role: string;
-  bio?: string | null;
-  display_name?: string | null;
-  created_at?: number[];
-  updated_at?: number[];
+  created_at: string;
+  updated_at: string;
 }
 
 // 学生信息接口

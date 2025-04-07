@@ -19,12 +19,18 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { Input } from "@/components/ui/input";
 import { info } from "@/lib/log";
 import { post } from "@/lib/http";
+import { LoginResponse } from "@/lib/types";
 
 const formSchema = z.object({
-  username: z.string().min(5, { message: "用户名至少需要5个字符" }),
+  username: z.string().min(2, { message: "用户名至少需要5个字符" }),
   email: z.string().email({ message: "请输入有效的邮箱地址" }),
   password: z.string().min(6, { message: "密码至少需要6个字符" }),
-  avatar_url: z.string().url({ message: "请输入有效的URL地址" }).optional()
+  avatar_url: z.string().url({ message: "请输入有效的URL地址" }).optional(),
+  grade: z.number().min(1).max(12, { message: "年级必须在1-12之间" }),
+  parent_name: z.string().min(2, { message: "家长姓名至少需要2个字符" }),
+  parent_phone: z.string().regex(/^1[3-9]\d{9}$/, { message: "请输入有效的手机号码" }),
+  address: z.string().min(5, { message: "地址至少需要5个字符" }),
+  notes: z.string().optional()
 });
 
 export default function RegisterPage() {
@@ -35,25 +41,52 @@ export default function RegisterPage() {
       username: "",
       email: "",
       password: "",
-      avatar_url: ""
+      avatar_url: "",
+      grade: 1,
+      parent_name: "",
+      parent_phone: "",
+      address: "",
+      notes: ""
     }
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // 准备注册数据
+      // 准备注册数据，只包含用户相关字段
       const registerData = {
-        ...values,
+        username: values.username,
+        email: values.email,
+        password: values.password,
+        avatar_url: values.avatar_url,
         role: "student"
       };
 
       info('发送注册请求:', { ...registerData, password: '***' });
 
       // 调用注册API，指定返回类型并确保withToken为false
-      const response = await post<{ message: string }>("/users/register", registerData, { withToken: false });
+      await post<{ message: string }>("/users/register", registerData, { withToken: false });
 
-      info('注册成功:', response);
-      // 注册成功后跳转到登录页面
+
+      const studentloginData = {
+        username_or_email: values.username,
+        password: values.password
+      }
+      const data = await post<LoginResponse>("/users/login", studentloginData, { withToken: false });
+
+      // 创建学生信息
+      const studentData = {
+        user_id: data.user.id,
+        grade: values.grade,
+        parent_name: values.parent_name,
+        parent_phone: values.parent_phone,
+        address: values.address,
+        notes: values.notes || ""
+      };
+
+      // 使用注册返回的token调用创建学生API
+      await post("/students", studentData, { token: data.token });
+
+      // 注册和创建学生成功后跳转到登录页面
       router.push(PATHS.AUTH_SIGN_IN);
     } catch (error) {
       info('注册错误:', error);
@@ -122,6 +155,66 @@ export default function RegisterPage() {
                 <FormItem>
                   <FormControl>
                     <Input placeholder="请输入头像URL（可选）" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="grade"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input type="number" placeholder="请输入年级(1-12)" {...field} onChange={e => field.onChange(parseInt(e.target.value))} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="parent_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input placeholder="请输入家长姓名" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="parent_phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input placeholder="请输入家长手机号" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input placeholder="请输入地址" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input placeholder="备注（可选）" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
