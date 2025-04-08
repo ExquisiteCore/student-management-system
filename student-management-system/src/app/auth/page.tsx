@@ -22,7 +22,7 @@ import { info } from "@/lib/log";
 import { Store } from "@tauri-apps/plugin-store";
 
 const formSchema = z.object({
-  username_or_email: z.string().min(2, { message: "用户名或邮箱至少需要5个字符" }),
+  username_or_email: z.string().min(2, { message: "用户名或邮箱至少需要2个字符" }),
   password: z.string().min(6, { message: "密码至少需要6个字符" })
 });
 
@@ -38,6 +38,8 @@ export default function SignInPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      info('发送登录请求:', { ...values, password: '***' });
+
       // 使用封装的post方法，指定返回类型为LoginResponse
       const data = await post<LoginResponse>("/users/login", values, { withToken: false });
       // 处理返回的token和用户数据
@@ -85,7 +87,7 @@ export default function SignInPage() {
           <CardDescription>欢迎来到EC的博客</CardDescription>
         </CardHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 px-6 w-full max-w-full">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-6 w-full max-w-full">
             <FormField
               control={form.control}
               name="username_or_email"
@@ -113,6 +115,11 @@ export default function SignInPage() {
             <Button type="submit" variant="default" className="w-full gap-4 flex justify-center">
               登录
             </Button>
+            {form.formState.errors.root && (
+              <div className="text-sm font-medium text-destructive">
+                {form.formState.errors.root.message}
+              </div>
+            )}
           </form>
         </Form>
         <CardFooter className="px-6">

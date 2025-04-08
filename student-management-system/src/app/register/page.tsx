@@ -19,13 +19,14 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { Input } from "@/components/ui/input";
 import { info } from "@/lib/log";
 import { post } from "@/lib/http";
-import { LoginResponse } from "@/lib/types";
 
 const formSchema = z.object({
-  username: z.string().min(2, { message: "用户名至少需要5个字符" }),
+  username: z.string().min(2, { message: "用户名至少需要2个字符" }),
   email: z.string().email({ message: "请输入有效的邮箱地址" }),
   password: z.string().min(6, { message: "密码至少需要6个字符" }),
+  display_name: z.string().optional(),
   avatar_url: z.string().url({ message: "请输入有效的URL地址" }).optional(),
+  bio: z.string().optional(),
   grade: z.number().min(1).max(12, { message: "年级必须在1-12之间" }),
   parent_name: z.string().min(2, { message: "家长姓名至少需要2个字符" }),
   parent_phone: z.string().regex(/^1[3-9]\d{9}$/, { message: "请输入有效的手机号码" }),
@@ -41,7 +42,9 @@ export default function RegisterPage() {
       username: "",
       email: "",
       password: "",
+      display_name: "",
       avatar_url: "",
+      bio: "",
       grade: 1,
       parent_name: "",
       parent_phone: "",
@@ -52,41 +55,28 @@ export default function RegisterPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // 准备注册数据，只包含用户相关字段
+      // 准备注册数据，包含用户和学生相关字段
       const registerData = {
         username: values.username,
         email: values.email,
         password: values.password,
-        avatar_url: values.avatar_url,
-        role: "student"
+        display_name: values.display_name || undefined,
+        avatar_url: values.avatar_url || undefined,
+        bio: values.bio || undefined,
+        role: "student",
+        grade: values.grade,
+        parent_name: values.parent_name,
+        parent_phone: values.parent_phone,
+        address: values.address,
+        notes: values.notes || undefined
       };
 
       info('发送注册请求:', { ...registerData, password: '***' });
 
       // 调用注册API，指定返回类型并确保withToken为false
-      await post<{ message: string }>("/users/register", registerData, { withToken: false });
+      await post<{ id: string }>("/users/register", registerData, { withToken: false });
 
-
-      const studentloginData = {
-        username_or_email: values.username,
-        password: values.password
-      }
-      const data = await post<LoginResponse>("/users/login", studentloginData, { withToken: false });
-
-      // 创建学生信息
-      const studentData = {
-        user_id: data.user.id,
-        grade: values.grade,
-        parent_name: values.parent_name,
-        parent_phone: values.parent_phone,
-        address: values.address,
-        notes: values.notes || ""
-      };
-
-      // 使用注册返回的token调用创建学生API
-      await post("/students", studentData, { token: data.token });
-
-      // 注册和创建学生成功后跳转到登录页面
+      // 注册成功后跳转到登录页面
       router.push(PATHS.AUTH_SIGN_IN);
     } catch (error) {
       info('注册错误:', error);
@@ -150,11 +140,35 @@ export default function RegisterPage() {
             />
             <FormField
               control={form.control}
+              name="display_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input placeholder="请输入显示名称（可选）" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="avatar_url"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
                     <Input placeholder="请输入头像URL（可选）" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="bio"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input placeholder="请输入个人简介（可选）" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
