@@ -262,3 +262,19 @@ pub async fn query_course_records(
         }
     }
 }
+
+//获取所有课程记录
+pub async fn get_all_course_records(
+    State(pool): State<Arc<Pool<Postgres>>>,
+) -> Result<Json<Vec<CourseRecord>>, (StatusCode, String)> {
+    match CourseRecord::find_all(&pool).await {
+        Ok(records) => Ok(Json(records)),
+        Err(e) => {
+            eprintln!("查询课程记录失败: {}", e);
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "查询课程记录失败".to_string(),
+            ))
+        }
+    }
+}

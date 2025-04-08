@@ -247,3 +247,19 @@ pub async fn query_exam_records(
         }
     }
 }
+
+//获取所有试卷记录
+pub async fn get_all_exam_records(
+    State(pool): State<Arc<Pool<Postgres>>>,
+) -> Result<Json<Vec<ExamRecord>>, (StatusCode, String)> {
+    match ExamRecord::find_all(&pool).await {
+        Ok(records) => Ok(Json(records)),
+        Err(e) => {
+            eprintln!("查询试卷记录失败: {}", e);
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "查询试卷记录失败".to_string(),
+            ))
+        }
+    }
+}

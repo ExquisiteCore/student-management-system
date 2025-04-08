@@ -191,3 +191,19 @@ pub async fn grade_homework(
         }
     }
 }
+
+//获取所有作业
+pub async fn get_all_homework(
+    State(pool): State<Arc<Pool<Postgres>>>,
+) -> Result<Json<Vec<Homework>>, (StatusCode, String)> {
+    match Homework::find_all(&pool).await {
+        Ok(homework) => Ok(Json(homework)),
+        Err(e) => {
+            eprintln!("获取所有作业失败: {}", e);
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "获取所有作业失败".to_string(),
+            ))
+        }
+    }
+}
