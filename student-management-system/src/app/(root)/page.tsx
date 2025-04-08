@@ -26,6 +26,12 @@ export default function Home() {
 
   // 学生总数
   const [studentCount, setStudentCount] = useState(0);
+  // 作业数量
+  const [homeworkCount, setHomeworkCount] = useState(0);
+  // 课程数量
+  const [courseCount, setCourseCount] = useState(0);
+  // 试卷总数
+  const [examCount, setExamCount] = useState(0);
 
   // 处理头像加载错误
   const [imageError, setImageError] = useState(false);
@@ -42,6 +48,48 @@ export default function Home() {
     }
 
     fetchStudents();
+  }, []);
+
+  // 获取作业列表
+  useEffect(() => {
+    async function fetchHomeworks() {
+      try {
+        const homeworks = await get<Array<Record<string, unknown>>>("/homeworks");
+        setHomeworkCount(homeworks.length);
+      } catch (error) {
+        info('获取作业列表失败:', error);
+      }
+    }
+
+    fetchHomeworks();
+  }, []);
+
+  // 获取课程列表
+  useEffect(() => {
+    async function fetchCourses() {
+      try {
+        const courses = await get<Array<Record<string, unknown>>>("/courses");
+        setCourseCount(courses.length);
+      } catch (error) {
+        info('获取课程列表失败:', error);
+      }
+    }
+
+    fetchCourses();
+  }, []);
+
+  // 获取试卷列表
+  useEffect(() => {
+    async function fetchExams() {
+      try {
+        const exams = await get<Array<Record<string, unknown>>>("/exams");
+        setExamCount(exams.length);
+      } catch (error) {
+        info('获取试卷列表失败:', error);
+      }
+    }
+
+    fetchExams();
   }, []);
 
   // 检查用户登录状态
@@ -168,7 +216,7 @@ export default function Home() {
         </div>
 
         <div className="bg-card p-6 rounded-lg shadow-sm border">
-          <h2 className="text-xl font-semibold mb-4">系统公告</h2>
+          <h2 className="text-xl font-semibold mb-4">系统公告（未上线）</h2>
           <div className="space-y-2">
             <div className="p-3 bg-accent rounded-md">
               <p className="font-medium">期末考试安排已发布</p>
@@ -198,7 +246,7 @@ export default function Home() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium opacity-80">作业数量</p>
-              <h3 className="text-3xl font-bold mt-2">12</h3>
+              <h3 className="text-3xl font-bold mt-2">{homeworkCount}</h3>
             </div>
             <GraduationCap className="opacity-80" size={24} />
           </div>
@@ -208,7 +256,7 @@ export default function Home() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-muted-foreground">课程数量</p>
-              <h3 className="text-3xl font-bold mt-2">36</h3>
+              <h3 className="text-3xl font-bold mt-2">{courseCount}</h3>
             </div>
             <BookOpen className="text-muted-foreground" size={24} />
           </div>
@@ -218,7 +266,7 @@ export default function Home() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-muted-foreground">试卷总数</p>
-              <h3 className="text-3xl font-bold mt-2">16</h3>
+              <h3 className="text-3xl font-bold mt-2">{examCount}</h3>
             </div>
             <ListChecks className="text-muted-foreground" size={24} />
           </div>
@@ -259,7 +307,7 @@ export default function Home() {
 
       {/* 最近活动 */}
       <div className="bg-card p-6 rounded-lg shadow-sm border">
-        <h2 className="text-xl font-semibold mb-4">最近活动</h2>
+        <h2 className="text-xl font-semibold mb-4">最近活动（未上线）</h2>
         <div className="space-y-4">
           {[
             { action: "添加了新学生", user: "管理员", time: "10分钟前" },
