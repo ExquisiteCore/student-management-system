@@ -237,7 +237,7 @@ export default function Home() {
 
         <div className="bg-card p-6 rounded-lg shadow-sm border">
           <h2 className="text-xl font-semibold mb-4">系统公告</h2>
-          <div className="space-y-2">
+          <div className="space-y-2" style={{ maxHeight: '150px', overflowY: 'auto' }}>
             {loading ? (
               <div className="flex justify-center p-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
