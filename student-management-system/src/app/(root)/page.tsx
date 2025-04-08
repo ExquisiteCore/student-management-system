@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import Link from "next/link";
 import Image from "next/image";
-import { BarChart3, BookOpen, GraduationCap, ListChecks, PlusCircle, Search, Users, User, LogIn } from "lucide-react";
+import { BarChart3, BookOpen, GraduationCap, ListChecks, PlusCircle, Users, User, LogIn } from "lucide-react";
+import { SearchStudentDialog } from "@/components/search-student-dialog";
 import { useState, useEffect } from "react";
 import { Store } from "@tauri-apps/plugin-store";
 import { PATHS } from "@/lib/path";
@@ -195,10 +196,7 @@ export default function Home() {
         <div className="bg-card p-6 rounded-lg shadow-sm border">
           <h2 className="text-xl font-semibold mb-4">快速操作</h2>
           <div className="flex flex-wrap gap-3">
-            <Button variant="outline" className="gap-2">
-              <Search size={18} />
-              查找学生
-            </Button>
+            <SearchStudentDialog />
             <Button variant="secondary" className="gap-2">
               <ListChecks size={18} />
               考勤管理
