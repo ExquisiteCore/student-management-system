@@ -29,6 +29,15 @@ type UserData = {
   avatar: string;
 } | null;
 
+// 定义公告类型
+type Announcement = {
+  id: string;
+  title: string;
+  content: string;
+  publisher_name: string;
+  published_at: number[];
+};
+
 export default function Home() {
   const router = useRouter();
 
@@ -36,6 +45,12 @@ export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<UserData>(null);
   const [imageError, setImageError] = useState(false);
+
+  // 公告状态
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // 数据统计
   const [dataCounts, setDataCounts] = useState<DataCounts>({
@@ -47,10 +62,26 @@ export default function Home() {
 
   // 获取各类数据
   useEffect(() => {
+    // 获取公告
+    async function fetchAnnouncements() {
+      try {
+        setLoading(true);
+        const res = await get<Announcement[]>('/announcements');
+        setAnnouncements(res);
+        setError(null);
+      } catch (err) {
+        setError('获取公告失败');
+        info('获取公告失败:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
     // 获取学生列表
     async function fetchData() {
       try {
         // 并行获取所有数据
+        await fetchAnnouncements();
         const [students, homeworks, courses, exams] = await Promise.all([
           get<Array<Record<string, unknown>>>("/students").catch(error => {
             info('获取学生列表失败:', error);
@@ -205,16 +236,42 @@ export default function Home() {
         </div>
 
         <div className="bg-card p-6 rounded-lg shadow-sm border">
-          <h2 className="text-xl font-semibold mb-4">系统公告（未上线）</h2>
+          <h2 className="text-xl font-semibold mb-4">系统公告</h2>
           <div className="space-y-2">
-            <div className="p-3 bg-accent rounded-md">
-              <p className="font-medium">期末考试安排已发布</p>
-              <p className="text-sm text-muted-foreground">2023-06-15</p>
-            </div>
-            <div className="p-3 bg-accent rounded-md">
-              <p className="font-medium">新学期注册开始</p>
-              <p className="text-sm text-muted-foreground">2023-06-10</p>
-            </div>
+            {loading ? (
+              <div className="flex justify-center p-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : error ? (
+              <div className="p-3 bg-destructive/10 text-destructive rounded-md">
+                {error}
+              </div>
+            ) : (
+              announcements.map((announcement) => (
+                <div key={announcement.id} className="p-3 bg-accent rounded-md">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-medium">{announcement.title}</p>
+                      <p className="text-sm text-muted-foreground">
+                        发布者: {announcement.publisher_name}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setExpandedId(expandedId === announcement.id ? null : announcement.id)}
+                    >
+                      {expandedId === announcement.id ? '收起' : '展开'}
+                    </Button>
+                  </div>
+                  {expandedId === announcement.id && (
+                    <div className="mt-2 p-2 bg-background rounded">
+                      <p className="text-sm">{announcement.content}</p>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
