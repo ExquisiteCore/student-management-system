@@ -7,6 +7,10 @@ use sqlx::{Error, postgres::PgPool};
 use time::OffsetDateTime;
 use uuid::Uuid;
 
+use super::course_record::CourseRecord;
+use super::exam_record::ExamRecord;
+use super::homework::Homework;
+
 /// 学生结构体
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Student {
@@ -60,6 +64,19 @@ pub struct UpdateStudentRequest {
     pub address: Option<String>,
     /// 备注
     pub notes: Option<String>,
+}
+
+/// 包含学生信息及其课程记录、作业和试卷记录的详细信息结构体
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StudentWithDetails {
+    /// 学生基本信息
+    pub student: Student,
+    /// 学生的课程记录列表
+    pub course_records: Vec<CourseRecord>,
+    /// 学生的作业列表
+    pub homeworks: Vec<Homework>,
+    /// 学生的试卷记录列表
+    pub exam_records: Vec<ExamRecord>,
 }
 
 impl Student {
@@ -120,6 +137,35 @@ impl Student {
         .await?;
 
         Ok(student)
+    }
+
+    /// 根据用户ID查找学生及其详细信息（包括课程记录、作业和试卷记录）
+    pub async fn find_by_user_id_with_details(
+        pool: &PgPool,
+        user_id: Uuid,
+    ) -> Result<Option<StudentWithDetails>, Error> {
+        // 首先获取学生基本信息
+        let student = Self::find_by_user_id(pool, user_id).await?;
+
+        if let Some(student) = student {
+            // 获取学生的课程记录
+            let course_records = CourseRecord::find_by_student_id(pool, student.id).await?;
+
+            // 获取学生的作业
+            let homeworks = Homework::find_by_student_id(pool, student.id).await?;
+
+            // 获取学生的试卷记录
+            let exam_records = ExamRecord::find_by_student_id(pool, student.id).await?;
+
+            Ok(Some(StudentWithDetails {
+                student,
+                course_records,
+                homeworks,
+                exam_records,
+            }))
+        } else {
+            Ok(None)
+        }
     }
 
     /// 获取所有学生

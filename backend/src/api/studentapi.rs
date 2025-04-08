@@ -11,7 +11,9 @@ use sqlx::{Pool, Postgres};
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::model::models::student::{CreateStudentRequest, Student, UpdateStudentRequest};
+use crate::model::models::student::{
+    CreateStudentRequest, Student, StudentWithDetails, UpdateStudentRequest,
+};
 
 /// 创建学生
 pub async fn create_student(
@@ -34,8 +36,8 @@ pub async fn create_student(
 pub async fn get_student(
     State(pool): State<Arc<Pool<Postgres>>>,
     Path(id): Path<Uuid>,
-) -> Result<Json<Student>, (StatusCode, String)> {
-    match Student::find_by_id(&pool, id).await {
+) -> Result<Json<StudentWithDetails>, (StatusCode, String)> {
+    match Student::find_by_user_id_with_details(&pool, id).await {
         Ok(Some(student)) => Ok(Json(student)),
         Ok(None) => Err((StatusCode::NOT_FOUND, "学生不存在".to_string())),
         Err(e) => {
