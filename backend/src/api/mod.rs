@@ -2,6 +2,7 @@
 //!
 //! 包含所有API端点的路由定义
 mod activityapi;
+mod announcementapi;
 mod courseapi;
 mod examapi;
 mod homeworkapi;
@@ -29,7 +30,11 @@ pub fn create_routes() -> Router<Arc<Pool<Postgres>>> {
         .route("/students", get(studentapi::get_all_students))
         .route("/homeworks", get(homeworkapi::get_all_homework))
         .route("/courses", get(courseapi::get_all_course_records))
-        .route("/exams", get(examapi::get_all_exam_records));
+        .route("/exams", get(examapi::get_all_exam_records))
+        .route(
+            "/announcements",
+            get(announcementapi::get_all_announcements),
+        );
 
     // 学生相关路由 - 需要用户认证
     let student_routes = Router::new()
@@ -99,7 +104,9 @@ pub fn create_routes() -> Router<Arc<Pool<Postgres>>> {
         .route("/activities", post(activityapi::create_activity));
 
     // 管理员路由 - 需要管理员权限
-    let admin_routes = Router::new().layer(from_fn(auth::admin_middleware));
+    let admin_routes = Router::new()
+        .route("/announcement", post(announcementapi::create_announcement))
+        .layer(from_fn(auth::admin_middleware));
 
     // 合并所有路由
     Router::new()

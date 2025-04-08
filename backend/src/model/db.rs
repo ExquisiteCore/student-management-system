@@ -218,6 +218,27 @@ async fn init_db(pool: &PgPool) -> Result<(), sqlx::Error> {
     .execute(pool)
     .await?;
 
+    // 创建公告表
+    sqlx::query(
+        "
+        CREATE TABLE IF NOT EXISTS announcements (
+            id UUID PRIMARY KEY,
+            title VARCHAR(200) NOT NULL,
+            content TEXT NOT NULL,
+            publisher_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            publisher_name VARCHAR(100) NOT NULL,
+            publisher_role VARCHAR(20) NOT NULL,
+            is_important BOOLEAN NOT NULL DEFAULT false,
+            published_at TIMESTAMPTZ NOT NULL,
+            expired_at TIMESTAMPTZ,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+    ",
+    )
+    .execute(pool)
+    .await?;
+
     info!("数据库初始化完成");
     Ok(())
 }
@@ -234,7 +255,7 @@ async fn is_db_empty(pool: &PgPool) -> Result<bool, sqlx::Error> {
         "
         SELECT COUNT(*) as count FROM information_schema.tables 
         WHERE table_schema = 'public' 
-        AND table_name IN ('users', 'students', 'courses', 'course_records', 'exams', 'exam_records', 'homework', 'activities')
+        AND table_name IN ('users', 'students', 'courses', 'course_records', 'exams', 'exam_records', 'homework', 'activities', 'announcements')
         ",
     )
     .fetch_one(pool)
