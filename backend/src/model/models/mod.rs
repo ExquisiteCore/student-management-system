@@ -7,5 +7,5 @@ pub mod course_record;
 pub mod exam;
 pub mod exam_record;
 pub mod homework;
-pub mod student;
+// student模块已被整合到user模块中
 pub mod user;

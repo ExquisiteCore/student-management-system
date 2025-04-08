@@ -43,7 +43,7 @@ impl From<String> for UserRole {
     }
 }
 
-/// 用户结构体
+/// 用户结构体（整合了学生信息）
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     /// 用户ID
@@ -63,6 +63,16 @@ pub struct User {
     pub bio: Option<String>,
     /// 用户角色
     pub role: String,
+    /// 年级（仅学生用户）
+    pub grade: Option<i32>,
+    /// 家长姓名（仅学生用户）
+    pub parent_name: Option<String>,
+    /// 家长电话（仅学生用户）
+    pub parent_phone: Option<String>,
+    /// 地址（仅学生用户）
+    pub address: Option<String>,
+    /// 备注（仅学生用户）
+    pub notes: Option<String>,
     /// 创建时间
     pub created_at: OffsetDateTime,
     /// 更新时间
@@ -86,6 +96,16 @@ pub struct CreateUserRequest {
     pub bio: Option<String>,
     /// 用户角色
     pub role: Option<String>,
+    /// 年级（仅学生用户）
+    pub grade: Option<i32>,
+    /// 家长姓名（仅学生用户）
+    pub parent_name: Option<String>,
+    /// 家长电话（仅学生用户）
+    pub parent_phone: Option<String>,
+    /// 地址（仅学生用户）
+    pub address: Option<String>,
+    /// 备注（仅学生用户）
+    pub notes: Option<String>,
 }
 
 /// 更新用户的请求数据结构
@@ -105,6 +125,16 @@ pub struct UpdateUserRequest {
     pub bio: Option<String>,
     /// 用户角色
     pub role: Option<String>,
+    /// 年级（仅学生用户）
+    pub grade: Option<i32>,
+    /// 家长姓名（仅学生用户）
+    pub parent_name: Option<String>,
+    /// 家长电话（仅学生用户）
+    pub parent_phone: Option<String>,
+    /// 地址（仅学生用户）
+    pub address: Option<String>,
+    /// 备注（仅学生用户）
+    pub notes: Option<String>,
 }
 
 /// 用户登录请求数据结构
@@ -116,12 +146,25 @@ pub struct LoginRequest {
     pub password: String,
 }
 
+/// 包含用户（学生）信息及其课程记录、作业和试卷记录的详细信息结构体
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserWithDetails {
+    /// 用户基本信息
+    pub user: User,
+    /// 学生的课程记录列表
+    pub course_records: Vec<super::course_record::CourseRecord>,
+    /// 学生的作业列表
+    pub homeworks: Vec<super::homework::Homework>,
+    /// 学生的试卷记录列表
+    pub exam_records: Vec<super::exam_record::ExamRecord>,
+}
+
 impl User {
-    /// 创建新用户
+    /// 创建新用户（包含学生信息）
     pub async fn create(pool: &PgPool, req: CreateUserRequest) -> Result<Self, Error> {
         let id = Uuid::new_v4();
         let now = OffsetDateTime::now_utc();
-        let role = req.role.unwrap_or_else(|| "user".to_string());
+        let role = req.role.unwrap_or_else(|| "student".to_string());
 
         // 使用已经哈希处理过的密码
         let password_hash = req.password;
@@ -129,9 +172,13 @@ impl User {
         let user = sqlx::query_as!(
             Self,
             r#"
-            INSERT INTO users (id, username, email, password_hash, display_name, avatar_url, bio, role, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-            RETURNING id, username, email, password_hash, display_name, avatar_url, bio, role, created_at, updated_at
+            INSERT INTO users (
+                id, username, email, password_hash, display_name, avatar_url, bio, role, 
+                grade, parent_name, parent_phone, address, notes, created_at, updated_at
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            RETURNING id, username, email, password_hash, display_name, avatar_url, bio, role, 
+                     grade, parent_name, parent_phone, address, notes, created_at, updated_at
             "#,
             id,
             req.username,
@@ -141,6 +188,11 @@ impl User {
             req.avatar_url,
             req.bio,
             role,
+            req.grade,
+            req.parent_name,
+            req.parent_phone,
+            req.address,
+            req.notes,
             now,
             now
         )
@@ -150,12 +202,13 @@ impl User {
         Ok(user)
     }
 
-    /// 根据ID查找用户
+    /// 根据ID查找用户（包含学生信息）
     pub async fn find_by_id(pool: &PgPool, id: Uuid) -> Result<Option<Self>, Error> {
         let user = sqlx::query_as!(
             Self,
             r#"
-            SELECT id, username, email, password_hash, display_name, avatar_url, bio, role, created_at, updated_at
+            SELECT id, username, email, password_hash, display_name, avatar_url, bio, role, 
+                   grade, parent_name, parent_phone, address, notes, created_at, updated_at
             FROM users
             WHERE id = $1
             "#,
@@ -167,12 +220,13 @@ impl User {
         Ok(user)
     }
 
-    /// 根据用户名查找用户
+    /// 根据用户名查找用户（包含学生信息）
     pub async fn find_by_username(pool: &PgPool, username: &str) -> Result<Option<Self>, Error> {
         let user = sqlx::query_as!(
             Self,
             r#"
-            SELECT id, username, email, password_hash, display_name, avatar_url, bio, role, created_at, updated_at
+            SELECT id, username, email, password_hash, display_name, avatar_url, bio, role, 
+                   grade, parent_name, parent_phone, address, notes, created_at, updated_at
             FROM users
             WHERE username = $1
             "#,
@@ -184,12 +238,13 @@ impl User {
         Ok(user)
     }
 
-    /// 根据电子邮件查找用户
+    /// 根据电子邮件查找用户（包含学生信息）
     pub async fn find_by_email(pool: &PgPool, email: &str) -> Result<Option<Self>, Error> {
         let user = sqlx::query_as!(
             Self,
             r#"
-            SELECT id, username, email, password_hash, display_name, avatar_url, bio, role, created_at, updated_at
+            SELECT id, username, email, password_hash, display_name, avatar_url, bio, role, 
+                   grade, parent_name, parent_phone, address, notes, created_at, updated_at
             FROM users
             WHERE email = $1
             "#,
@@ -201,7 +256,7 @@ impl User {
         Ok(user)
     }
 
-    /// 根据用户名或电子邮件查找用户
+    /// 根据用户名或电子邮件查找用户（包含学生信息）
     pub async fn find_by_username_or_email(
         pool: &PgPool,
         username_or_email: &str,
@@ -209,7 +264,8 @@ impl User {
         let user = sqlx::query_as!(
             Self,
             r#"
-            SELECT id, username, email, password_hash, display_name, avatar_url, bio, role, created_at, updated_at
+            SELECT id, username, email, password_hash, display_name, avatar_url, bio, role, 
+                   grade, parent_name, parent_phone, address, notes, created_at, updated_at
             FROM users
             WHERE username = $1 OR email = $1
             "#,
@@ -221,12 +277,13 @@ impl User {
         Ok(user)
     }
 
-    /// 获取所有用户
+    /// 获取所有用户（包含学生信息）
     pub async fn find_all(pool: &PgPool) -> Result<Vec<Self>, Error> {
         let users = sqlx::query_as!(
             Self,
             r#"
-            SELECT id, username, email, password_hash, display_name, avatar_url, bio, role, created_at, updated_at
+            SELECT id, username, email, password_hash, display_name, avatar_url, bio, role, 
+                   grade, parent_name, parent_phone, address, notes, created_at, updated_at
             FROM users
             ORDER BY username ASC
             "#
@@ -237,7 +294,7 @@ impl User {
         Ok(users)
     }
 
-    /// 更新用户
+    /// 更新用户（包含学生信息）
     pub async fn update(pool: &PgPool, id: Uuid, req: UpdateUserRequest) -> Result<Self, Error> {
         let user = Self::find_by_id(pool, id).await?;
 
@@ -258,15 +315,22 @@ impl User {
             let avatar_url = req.avatar_url.or(user.avatar_url);
             let bio = req.bio.or(user.bio);
             let role = req.role.unwrap_or(user.role);
+            let grade = req.grade.or(user.grade);
+            let parent_name = req.parent_name.or(user.parent_name);
+            let parent_phone = req.parent_phone.or(user.parent_phone);
+            let address = req.address.or(user.address);
+            let notes = req.notes.or(user.notes);
             let now = OffsetDateTime::now_utc();
 
             let updated_user = sqlx::query_as!(
                 Self,
                 r#"
                 UPDATE users
-                SET username = $1, email = $2, password_hash = $3, display_name = $4, avatar_url = $5, bio = $6, role = $7, updated_at = $8
-                WHERE id = $9
-                RETURNING id, username, email, password_hash, display_name, avatar_url, bio, role, created_at, updated_at
+                SET username = $1, email = $2, password_hash = $3, display_name = $4, avatar_url = $5, bio = $6, role = $7, 
+                    grade = $8, parent_name = $9, parent_phone = $10, address = $11, notes = $12, updated_at = $13
+                WHERE id = $14
+                RETURNING id, username, email, password_hash, display_name, avatar_url, bio, role, 
+                         grade, parent_name, parent_phone, address, notes, created_at, updated_at
                 "#,
                 username,
                 email,
@@ -275,6 +339,11 @@ impl User {
                 avatar_url,
                 bio,
                 role,
+                grade,
+                parent_name,
+                parent_phone,
+                address,
+                notes,
                 now,
                 id
             )
@@ -318,5 +387,86 @@ impl User {
         } else {
             Ok(None) // 用户不存在
         }
+    }
+
+    /// 获取用户（学生）详细信息，包括课程记录、作业和试卷记录
+    pub async fn find_with_details(
+        pool: &PgPool,
+        id: Uuid,
+    ) -> Result<Option<UserWithDetails>, Error> {
+        // 首先获取用户基本信息
+        let user = Self::find_by_id(pool, id).await?;
+
+        if let Some(user) = user {
+            // 只有学生角色才获取详细信息
+            if user.role.to_lowercase() == "student" {
+                use super::course_record::CourseRecord;
+                use super::exam_record::ExamRecord;
+                use super::homework::Homework;
+
+                // 获取学生的课程记录
+                let course_records = CourseRecord::find_by_student_id(pool, id).await?;
+
+                // 获取学生的作业
+                let homeworks = Homework::find_by_student_id(pool, id).await?;
+
+                // 获取学生的试卷记录
+                let exam_records = ExamRecord::find_by_student_id(pool, id).await?;
+
+                Ok(Some(UserWithDetails {
+                    user,
+                    course_records,
+                    homeworks,
+                    exam_records,
+                }))
+            } else {
+                // 非学生角色返回空的详细信息
+                Ok(Some(UserWithDetails {
+                    user,
+                    course_records: vec![],
+                    homeworks: vec![],
+                    exam_records: vec![],
+                }))
+            }
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// 按年级获取学生用户
+    pub async fn find_students_by_grade(pool: &PgPool, grade: i32) -> Result<Vec<Self>, Error> {
+        let students = sqlx::query_as!(
+            Self,
+            r#"
+            SELECT id, username, email, password_hash, display_name, avatar_url, bio, role, 
+                   grade, parent_name, parent_phone, address, notes, created_at, updated_at
+            FROM users
+            WHERE role = 'student' AND grade = $1
+            ORDER BY created_at DESC
+            "#,
+            grade
+        )
+        .fetch_all(pool)
+        .await?;
+
+        Ok(students)
+    }
+
+    /// 获取所有学生用户
+    pub async fn find_all_students(pool: &PgPool) -> Result<Vec<Self>, Error> {
+        let students = sqlx::query_as!(
+            Self,
+            r#"
+            SELECT id, username, email, password_hash, display_name, avatar_url, bio, role, 
+                   grade, parent_name, parent_phone, address, notes, created_at, updated_at
+            FROM users
+            WHERE role = 'student'
+            ORDER BY created_at DESC
+            "#
+        )
+        .fetch_all(pool)
+        .await?;
+
+        Ok(students)
     }
 }

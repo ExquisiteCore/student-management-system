@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { get } from '@/lib/http';
 import {
   Dialog,
   DialogContent,
@@ -13,12 +14,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { AnyARecord } from 'dns';
 
 type Student = {
   id: string;
-  name: string;
-  class_name?: string;
-  student_id?: string;
+  name: string;       // 对应用户表的display_name或username
+  class_name?: string; // 对应用户表的grade字段转换
+  student_id?: string; // 对应用户表的username
+  // 其他可能需要的字段
+  grade?: number;
+  parent_name?: string;
+  parent_phone?: string;
+  address?: string;
+  notes?: string;
 };
 
 export function SearchStudentDialog() {
@@ -33,22 +41,29 @@ export function SearchStudentDialog() {
 
     setIsSearching(true);
     try {
-      // 这里应该调用API进行搜索，目前使用模拟数据
-      // 实际项目中应该替换为真实的API调用
-      setTimeout(() => {
-        const mockResults: Student[] = [
-          { id: '1', name: '张三', class_name: '一年级一班', student_id: '20230001' },
-          { id: '2', name: '李四', class_name: '一年级二班', student_id: '20230002' },
-        ].filter(student =>
-          student.name.includes(searchQuery) ||
-          student.student_id?.includes(searchQuery)
-        );
+      // 调用API进行搜索，使用http.ts中的get方法
+      const data = await get<any[]>(`/users`, {
+        role: 'student',
+        search: searchQuery
+      });
 
-        setSearchResults(mockResults);
-        setIsSearching(false);
-      }, 500);
+      // 将API返回的用户数据转换为Student类型
+      const students: Student[] = data.map((user) => ({
+        id: user.id,
+        name: user.display_name || user.username,
+        class_name: user.grade ? `${user.grade}年级` : '-',
+        student_id: user.username,
+        grade: user.grade,
+        parent_name: user.parent_name,
+        parent_phone: user.parent_phone,
+        address: user.address,
+        notes: user.notes
+      }));
+
+      setSearchResults(students);
     } catch (error) {
       console.error('搜索学生失败:', error);
+    } finally {
       setIsSearching(false);
     }
   };

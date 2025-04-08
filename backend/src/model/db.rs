@@ -83,7 +83,7 @@ pub async fn get_db_pool(config: &Arc<Config>) -> Result<PgPool, sqlx::Error> {
 async fn init_db(pool: &PgPool) -> Result<(), sqlx::Error> {
     info!("初始化数据库...");
 
-    // 创建用户表（保留原有结构，role字段用于区分老师和学生）
+    // 创建用户表（整合学生信息，使用role字段区分用户类型）
     sqlx::query(
         "
         CREATE TABLE IF NOT EXISTS users (
@@ -94,26 +94,13 @@ async fn init_db(pool: &PgPool) -> Result<(), sqlx::Error> {
             display_name VARCHAR(100),
             avatar_url TEXT,
             bio TEXT,
-            role VARCHAR(20) NOT NULL DEFAULT 'student', -- 默认为学生角色，可以是'teacher'或'student'
-            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        )
-    ",
-    )
-    .execute(pool)
-    .await?;
-
-    // 创建学生表（包含基本信息和年级）
-    sqlx::query(
-        "
-        CREATE TABLE IF NOT EXISTS students (
-            id UUID PRIMARY KEY,
-            user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            grade INT NOT NULL, -- 年级：1, 2, 3
-            parent_name VARCHAR(100),
-            parent_phone VARCHAR(20),
-            address TEXT,
-            notes TEXT,
+            role VARCHAR(20) NOT NULL DEFAULT 'student', -- 用户角色：'teacher'或'student'
+            -- 学生特有字段
+            grade INT, -- 年级：1, 2, 3（仅学生用户）
+            parent_name VARCHAR(100), -- 家长姓名（仅学生用户）
+            parent_phone VARCHAR(20), -- 家长电话（仅学生用户）
+            address TEXT, -- 地址（仅学生用户）
+            notes TEXT, -- 备注（仅学生用户）
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
@@ -143,7 +130,7 @@ async fn init_db(pool: &PgPool) -> Result<(), sqlx::Error> {
         "
         CREATE TABLE IF NOT EXISTS course_records (
             id UUID PRIMARY KEY,
-            student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+            student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE, -- 引用用户表中的学生
             course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
             class_date DATE NOT NULL, -- 上课日期
             content TEXT NOT NULL, -- 上课内容
@@ -179,7 +166,7 @@ async fn init_db(pool: &PgPool) -> Result<(), sqlx::Error> {
         "
         CREATE TABLE IF NOT EXISTS exam_records (
             id UUID PRIMARY KEY,
-            student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+            student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE, -- 引用用户表中的学生
             exam_id UUID NOT NULL REFERENCES exams(id) ON DELETE CASCADE,
             score DECIMAL(5,2), -- 分数
             completion_date DATE NOT NULL, -- 完成日期
@@ -197,7 +184,7 @@ async fn init_db(pool: &PgPool) -> Result<(), sqlx::Error> {
         "
         CREATE TABLE IF NOT EXISTS homework (
             id UUID PRIMARY KEY,
-            student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+            student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE, -- 引用用户表中的学生
             title VARCHAR(200) NOT NULL,
             description TEXT,
             file_path TEXT, -- 作业文件路径
