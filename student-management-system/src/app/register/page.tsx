@@ -92,7 +92,7 @@ export default function RegisterPage() {
 
   return (
     <div className="grid h-screen w-screen place-content-center">
-      <Card className="relative w-[320px] max-w-[95vw] animate-fade rounded-3xl py-4 sm:w-full sm:min-w-[360px] sm:max-w-[500px]">
+      <Card className="relative w-[640px] max-w-[95vw] animate-fade rounded-3xl py-4 sm:w-full sm:min-w-[360px] sm:max-w-[700px]">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>用户注册</span>
@@ -101,7 +101,7 @@ export default function RegisterPage() {
           <CardDescription>欢迎注册EC的博客</CardDescription>
         </CardHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-6 w-full max-w-full">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-6 w-full max-w-full">
             <FormField
               control={form.control}
               name="username"
@@ -235,11 +235,11 @@ export default function RegisterPage() {
               )}
             />
             {form.formState.errors.root && (
-              <div className="text-sm font-medium text-destructive">
+              <div className="text-sm font-medium text-destructive col-span-2">
                 {form.formState.errors.root.message}
               </div>
             )}
-            <Button type="submit" variant="default" className="w-full gap-4 flex justify-center">
+            <Button type="submit" variant="default" className="w-full gap-4 flex justify-center col-span-2">
               注册
             </Button>
           </form>
