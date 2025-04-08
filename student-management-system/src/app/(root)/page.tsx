@@ -13,83 +13,75 @@ import { useRouter } from "next/navigation";
 import { info } from "@/lib/log";
 import { get } from "@/lib/http";
 
+// 定义数据类型
+type DataCounts = {
+  students: number;
+  homeworks: number;
+  courses: number;
+  exams: number;
+};
+
+// 定义用户类型
+type UserData = {
+  name: string;
+  role: string;
+  avatar: string;
+} | null;
+
 export default function Home() {
   const router = useRouter();
-  // 用户登录状态
+
+  // 用户状态
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  // 用户数据
-  const [user, setUser] = useState<{
-    name: string;
-    role: string;
-    avatar: string;
-  } | null>(null);
-
-  // 学生总数
-  const [studentCount, setStudentCount] = useState(0);
-  // 作业数量
-  const [homeworkCount, setHomeworkCount] = useState(0);
-  // 课程数量
-  const [courseCount, setCourseCount] = useState(0);
-  // 试卷总数
-  const [examCount, setExamCount] = useState(0);
-
-  // 处理头像加载错误
+  const [user, setUser] = useState<UserData>(null);
   const [imageError, setImageError] = useState(false);
 
-  // 获取学生列表
+  // 数据统计
+  const [dataCounts, setDataCounts] = useState<DataCounts>({
+    students: 0,
+    homeworks: 0,
+    courses: 0,
+    exams: 0
+  });
+
+  // 获取各类数据
   useEffect(() => {
-    async function fetchStudents() {
+    // 获取学生列表
+    async function fetchData() {
       try {
-        const students = await get<Array<Record<string, unknown>>>("/students");
-        setStudentCount(students.length);
+        // 并行获取所有数据
+        const [students, homeworks, courses, exams] = await Promise.all([
+          get<Array<Record<string, unknown>>>("/students").catch(error => {
+            info('获取学生列表失败:', error);
+            return [];
+          }),
+          get<Array<Record<string, unknown>>>("/homeworks").catch(error => {
+            info('获取作业列表失败:', error);
+            return [];
+          }),
+          get<Array<Record<string, unknown>>>("/courses").catch(error => {
+            info('获取课程列表失败:', error);
+            return [];
+          }),
+          get<Array<Record<string, unknown>>>("/exams").catch(error => {
+            info('获取试卷列表失败:', error);
+            return [];
+          })
+        ]);
+
+        // 更新数据计数
+        setDataCounts({
+          students: students.length,
+          homeworks: homeworks.length,
+          courses: courses.length,
+          exams: exams.length
+        });
       } catch (error) {
-        info('获取学生列表失败:', error);
+        info('获取数据失败:', error);
       }
     }
 
-    fetchStudents();
-  }, []);
-
-  // 获取作业列表
-  useEffect(() => {
-    async function fetchHomeworks() {
-      try {
-        const homeworks = await get<Array<Record<string, unknown>>>("/homeworks");
-        setHomeworkCount(homeworks.length);
-      } catch (error) {
-        info('获取作业列表失败:', error);
-      }
-    }
-
-    fetchHomeworks();
-  }, []);
-
-  // 获取课程列表
-  useEffect(() => {
-    async function fetchCourses() {
-      try {
-        const courses = await get<Array<Record<string, unknown>>>("/courses");
-        setCourseCount(courses.length);
-      } catch (error) {
-        info('获取课程列表失败:', error);
-      }
-    }
-
-    fetchCourses();
-  }, []);
-
-  // 获取试卷列表
-  useEffect(() => {
-    async function fetchExams() {
-      try {
-        const exams = await get<Array<Record<string, unknown>>>("/exams");
-        setExamCount(exams.length);
-      } catch (error) {
-        info('获取试卷列表失败:', error);
-      }
-    }
-
-    fetchExams();
+    fetchData();
   }, []);
 
   // 检查用户登录状态
@@ -128,6 +120,21 @@ export default function Home() {
     checkAuthStatus();
   }, []);
 
+  // 处理登出
+  const handleLogout = async () => {
+    try {
+      const store = await Store.get("auth.dat");
+      if (store) {
+        await store.delete("auth");
+        await store.save();
+      }
+      setIsLoggedIn(false);
+      setUser(null);
+    } catch (error) {
+      info('退出登录失败:', error);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 relative">
       {/* 用户头像卡片或登录按钮 - 右上角 */}
@@ -161,19 +168,7 @@ export default function Home() {
               variant="ghost"
               size="sm"
               className="text-destructive hover:text-destructive"
-              onClick={async () => {
-                try {
-                  const store = await Store.get("auth.dat");
-                  if (store) {
-                    await store.delete("auth");
-                    await store.save();
-                  }
-                  setIsLoggedIn(false);
-                  setUser(null);
-                } catch (error) {
-                  info('退出登录失败:', error);
-                }
-              }}
+              onClick={handleLogout}
             >
               退出登录
             </Button>
@@ -236,7 +231,7 @@ export default function Home() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium opacity-80">学生总数</p>
-              <h3 className="text-3xl font-bold mt-2">{studentCount}</h3>
+              <h3 className="text-3xl font-bold mt-2">{dataCounts.students}</h3>
             </div>
             <Users className="opacity-80" size={24} />
           </div>
@@ -246,7 +241,7 @@ export default function Home() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium opacity-80">作业数量</p>
-              <h3 className="text-3xl font-bold mt-2">{homeworkCount}</h3>
+              <h3 className="text-3xl font-bold mt-2">{dataCounts.homeworks}</h3>
             </div>
             <GraduationCap className="opacity-80" size={24} />
           </div>
@@ -256,7 +251,7 @@ export default function Home() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-muted-foreground">课程数量</p>
-              <h3 className="text-3xl font-bold mt-2">{courseCount}</h3>
+              <h3 className="text-3xl font-bold mt-2">{dataCounts.courses}</h3>
             </div>
             <BookOpen className="text-muted-foreground" size={24} />
           </div>
@@ -266,7 +261,7 @@ export default function Home() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-muted-foreground">试卷总数</p>
-              <h3 className="text-3xl font-bold mt-2">{examCount}</h3>
+              <h3 className="text-3xl font-bold mt-2">{dataCounts.exams}</h3>
             </div>
             <ListChecks className="text-muted-foreground" size={24} />
           </div>
