@@ -197,10 +197,6 @@ export default function Home() {
           <h2 className="text-xl font-semibold mb-4">快速操作</h2>
           <div className="flex flex-wrap gap-3">
             <SearchStudentDialog />
-            <Button variant="secondary" className="gap-2">
-              <ListChecks size={18} />
-              考勤管理
-            </Button>
             <Button variant="outline" className="gap-2">
               <BarChart3 size={18} />
               成绩分析
@@ -273,9 +269,9 @@ export default function Home() {
           <TooltipProvider>
             {[
               { title: "学生管理", icon: <Users size={24} />, color: "bg-blue-100 dark:bg-blue-950" },
-              { title: "班级管理", icon: <GraduationCap size={24} />, color: "bg-green-100 dark:bg-green-950" },
               { title: "课程管理", icon: <BookOpen size={24} />, color: "bg-yellow-100 dark:bg-yellow-950" },
-              { title: "考勤管理", icon: <ListChecks size={24} />, color: "bg-purple-100 dark:bg-purple-950" },
+              { title: "试卷管理", icon: <ListChecks size={24} />, color: "bg-red-100 dark:bg-red-950" },
+              { title: "作业管理", icon: <Users size={24} />, color: "bg-purple-100 dark:bg-purple-950" },
               { title: "成绩分析", icon: <BarChart3 size={24} />, color: "bg-pink-100 dark:bg-pink-950" },
               { title: "添加数据", icon: <PlusCircle size={24} />, color: "bg-orange-100 dark:bg-orange-950" },
             ].map((item, index) => (

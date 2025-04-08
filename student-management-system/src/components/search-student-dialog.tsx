@@ -38,7 +38,7 @@ interface StudentApiResponse {
 }
 
 // 单个学生详情API响应
-interface StudentDetailApiResponse extends StudentApiResponse {
+interface StudentDetailApiResponse {
   // 学生关联的课程记录
   course_records: Array<{
     id: UUID;
@@ -78,6 +78,9 @@ interface StudentDetailApiResponse extends StudentApiResponse {
     created_at: string;
     updated_at: string;
   }>;
+
+  // 学生基本信息
+  user: StudentApiResponse;
 }
 
 // 组件内部使用的学生数据结构
@@ -203,23 +206,24 @@ export function SearchStudentDialog() {
 
       // 转换为Student类型
       const studentDetails: Student = {
-        id: data.id,
-        name: data.display_name || data.username,
-        class_name: data.grade ? `${data.grade}年级` : '-',
-        student_id: data.username,
-        avatar_url: data.avatar_url,
-        grade: data.grade,
-        parent_name: data.parent_name,
-        parent_phone: data.parent_phone,
-        address: data.address,
-        notes: data.notes,
-        email: data.email,
-        bio: data.bio,
+        id: data.user.id,
+        name: data.user.display_name || data.user.username,
+        class_name: data.user.grade ? `${data.user.grade}年级` : '-',
+        student_id: data.user.username,
+        avatar_url: data.user.avatar_url,
+        grade: data.user.grade,
+        parent_name: data.user.parent_name,
+        parent_phone: data.user.parent_phone,
+        address: data.user.address,
+        notes: data.user.notes,
+        email: data.user.email,
+        bio: data.user.bio,
         // 添加关联数据
         course_records: data.course_records,
         homeworks: data.homeworks,
         exam_records: data.exam_records
       };
+      info('返回:', data);
       info('获取学生id:', studentId);
       info('SearchStudentDialog', studentDetails)
 
