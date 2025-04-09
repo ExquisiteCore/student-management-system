@@ -31,6 +31,7 @@ pub fn create_routes() -> Router<Arc<Pool<Postgres>>> {
         .route("/homeworks", get(homeworkapi::get_all_homework))
         .route("/courses", get(courseapi::get_all_course_records))
         .route("/exams", get(examapi::get_all_exam_records))
+        .route("/course", get(courseapi::get_all_courses))
         .route(
             "/announcements",
             get(announcementapi::get_all_announcements),

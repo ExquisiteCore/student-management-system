@@ -37,6 +37,22 @@ pub async fn create_course(
     }
 }
 
+/// 获取所有课程
+pub async fn get_all_courses(
+    State(pool): State<Arc<Pool<Postgres>>>,
+) -> Result<Json<Vec<Course>>, (StatusCode, String)> {
+    match Course::find_all(&pool).await {
+        Ok(courses) => Ok(Json(courses)),
+        Err(e) => {
+            eprintln!("获取所有课程失败: {}", e);
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "获取所有课程失败".to_string(),
+            ))
+        }
+    }
+}
+
 /// 获取课程信息
 pub async fn get_course(
     State(pool): State<Arc<Pool<Postgres>>>,
