@@ -9,19 +9,24 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { PATHS } from "@/lib/path";
 import Image from "next/image";
+import { UUID } from "crypto";
 
 // 定义学生类型
 type Student = {
-  id: string;
-  user_id: string;
-  name: string;
-  grade: number;
-  parent_name: string;
-  parent_phone: string;
-  address: string;
-  notes?: string;
+  id: UUID;
+  username: string;
+  email: string;
+  display_name?: string;
   avatar_url?: string;
-  created_at?: number[];
+  bio?: string;
+  role: string;
+  created_at: string;
+  updated_at: string;
+  grade?: number;
+  parent_name?: string;
+  parent_phone?: string;
+  address?: string;
+  notes?: string;
 };
 
 export default function StudentsPage() {
@@ -53,7 +58,7 @@ export default function StudentsPage() {
 
   // 过滤学生列表
   const filteredStudents = students.filter(student =>
-    (student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+    (student.username?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
     (student.parent_name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
     (student.parent_phone?.includes(searchTerm) ?? false)
   );
@@ -147,7 +152,7 @@ export default function StudentsPage() {
                             ) : (
                               <Image
                                 src={student.avatar_url}
-                                alt={`${student.name}的头像`}
+                                alt={`${student.username}的头像`}
                                 width={40}
                                 height={40}
                                 className="w-full h-full object-cover"
@@ -157,7 +162,7 @@ export default function StudentsPage() {
                           </div>
                         </div>
                         <div>
-                          <p className="font-medium">{student.name}</p>
+                          <p className="font-medium">姓名：{student.username}</p>
                           <p className="text-xs text-muted-foreground">ID: {student.id.substring(0, 8)}</p>
                         </div>
                       </div>
