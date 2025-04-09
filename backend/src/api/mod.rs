@@ -41,7 +41,6 @@ pub fn create_routes() -> Router<Arc<Pool<Postgres>>> {
         .route("/students", post(studentapi::create_student))
         .route("/students/{id}", get(studentapi::get_student))
         .route("/students/{id}", put(studentapi::update_student))
-        .route("/students/{id}", delete(studentapi::delete_student))
         .route(
             "/students/grade/{grade}",
             get(studentapi::get_students_by_grade),
