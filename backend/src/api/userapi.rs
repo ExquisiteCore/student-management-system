@@ -9,7 +9,7 @@ use std::sync::Arc;
 
 use crate::error::{AppError, AppErrorType};
 use crate::middleware::auth;
-use crate::model::models::user::{CreateUserRequest, DeleteUserRequest, LoginRequest, User};
+use crate::model::models::user::{CreateUserRequest, LoginRequest, User};
 
 /// 用户注册API
 ///
