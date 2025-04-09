@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { info } from '@/lib/log';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Resolver, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Store } from '@tauri-apps/plugin-store';
@@ -50,7 +50,7 @@ export function CreateAnnouncementDialog() {
 
   // 初始化表单
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as Resolver<z.infer<typeof formSchema>>,
     defaultValues: {
       title: "",
       content: "",
