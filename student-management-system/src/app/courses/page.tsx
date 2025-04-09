@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { get, post, del, put } from "@/lib/http";
 import { info } from "@/lib/log";
 import { BookOpen, Plus, Search, ArrowLeft, Eye, Edit, Trash2 } from "lucide-react";
+import { CourseRecordsDialog } from "@/components/course-records-dialog";
 import {
   Dialog,
   DialogContent,
@@ -35,24 +36,14 @@ type Course = {
 };
 
 export default function CoursesPage() {
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   // 课程列表状态
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  const [courseRecord, setCourseRecord] = useState<{
-    id: string;
-    student_id: string;
-    course_id: string;
-    class_date: string;
-    content: string;
-    performance: string;
-    teacher_id: string;
-    created_at: string;
-    updated_at: string;
-  } | null>(null);
   const [formData, setFormData] = useState<{
     name: string;
     description: string;
@@ -149,6 +140,11 @@ export default function CoursesPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <CourseRecordsDialog
+        courseId={selectedCourseId}
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+      />
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -200,37 +196,6 @@ export default function CoursesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* 课程记录详情弹窗 */}
-      <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>课程记录详情</DialogTitle>
-            <DialogDescription>
-              查看课程记录详细信息
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {courseRecord && (
-              <>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">上课日期</Label>
-                  <div className="col-span-3">{courseRecord.class_date}</div>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">课程内容</Label>
-                  <div className="col-span-3">{courseRecord.content}</div>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">学生表现</Label>
-                  <div className="col-span-3">{courseRecord.performance}</div>
-                </div>
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
       {/* 页面标题和返回按钮 */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
@@ -309,28 +274,9 @@ export default function CoursesPage() {
                     variant="ghost"
                     size="sm"
                     className="h-8 w-8 p-0"
-                    onClick={async () => {
-                      try {
-                        setLoading(true);
-                        const res = await get(`/course-records/${course.id}`);
-                        setCourseRecord(res as {
-                          id: string;
-                          student_id: string;
-                          course_id: string;
-                          class_date: string;
-                          content: string;
-                          performance: string;
-                          teacher_id: string;
-                          created_at: string;
-                          updated_at: string;
-                        });
-                        setDetailDialogOpen(true);
-                      } catch (err) {
-                        setError('获取课程记录失败');
-                        info('获取课程记录失败:', err);
-                      } finally {
-                        setLoading(false);
-                      }
+                    onClick={() => {
+                      setSelectedCourseId(course.id);
+                      setDetailDialogOpen(true);
                     }}
                     disabled={loading}
                   >
