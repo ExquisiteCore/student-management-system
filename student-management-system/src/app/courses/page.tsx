@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { get, post } from "@/lib/http";
 import { info } from "@/lib/log";
-import { BookOpen, Plus, Search, ArrowLeft, Eye, Edit, Trash2, Calendar, Clock, Users } from "lucide-react";
+import { BookOpen, Plus, Search, ArrowLeft, Eye, Edit, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -93,33 +93,6 @@ export default function CoursesPage() {
     }
   };
 
-  // 获取课程状态中文名称
-  const getStatusName = (status: string) => {
-    switch (status) {
-      case 'active':
-        return '进行中';
-      case 'upcoming':
-        return '即将开始';
-      case 'completed':
-        return '已结束';
-      case 'cancelled':
-        return '已取消';
-      default:
-        return '未知状态';
-    }
-  };
-
-  // 格式化课程时长
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-
-    if (hours > 0) {
-      return `${hours}小时${mins > 0 ? ` ${mins}分钟` : ''}`;
-    } else {
-      return `${mins}分钟`;
-    }
-  };
 
   const handleSubmit = async () => {
     try {
@@ -252,7 +225,6 @@ export default function CoursesPage() {
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-medium text-lg">{course.name}</h3>
                   <span className={`text-xs px-2 py-1 rounded-full ${getStatusBadgeClass(course.status)}`}>
-                    {getStatusName(course.status)}
                   </span>
                 </div>
 
@@ -264,26 +236,6 @@ export default function CoursesPage() {
                     </span>
                   ))}
                 </div>
-
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Users size={16} className="text-muted-foreground" />
-                    <span>教师: {course.teacher_name}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar size={16} className="text-muted-foreground" />
-                    <span>课程安排: {course.schedule}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock size={16} className="text-muted-foreground" />
-                    <span>课程时长: {formatDuration(course.duration)}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Users size={16} className="text-muted-foreground" />
-                    <span>学生人数: {course.student_count}人</span>
-                  </div>
-                </div>
-
                 <div className="flex justify-end gap-2 pt-2 border-t">
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <Eye size={16} />
