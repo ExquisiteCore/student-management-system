@@ -2,9 +2,19 @@
 
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { get } from "@/lib/http";
+import { get, post } from "@/lib/http";
 import { info } from "@/lib/log";
 import { BookOpen, Plus, Search, ArrowLeft, Eye, Edit, Trash2, Calendar, Clock, Users } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { PATHS } from "@/lib/path";
@@ -28,6 +38,16 @@ export default function CoursesPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [formData, setFormData] = useState<{
+    name: string;
+    description: string;
+    keywords: string[];
+  }>({
+    name: '',
+    description: '',
+    keywords: []
+  });
 
   // 获取课程列表
   useEffect(() => {
@@ -99,8 +119,75 @@ export default function CoursesPage() {
     }
   };
 
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      await post('/courses', formData);
+      setDialogOpen(false);
+      setFormData({ name: '', description: '', keywords: [] });
+      const res = await get<Course[]>('/courses');
+      setCourses(res);
+    } catch (err) {
+      setError('创建课程失败');
+      info('创建课程失败:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>添加新课程</DialogTitle>
+            <DialogDescription>
+              填写课程信息并提交
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                课程名称
+              </Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                课程描述
+              </Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="keywords" className="text-right">
+                关键词
+              </Label>
+              <Input
+                id="keywords"
+                value={formData.keywords.join(',')}
+                onChange={(e) => setFormData({ ...formData, keywords: e.target.value.split(',') })}
+                placeholder="用逗号分隔多个关键词"
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" onClick={handleSubmit} disabled={loading}>
+              {loading ? '提交中...' : '提交'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {/* 页面标题和返回按钮 */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
@@ -111,7 +198,7 @@ export default function CoursesPage() {
           </Link>
           <h1 className="text-2xl font-bold">课程管理</h1>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => setDialogOpen(true)}>
           <Plus size={18} />
           <span>添加课程</span>
         </Button>
