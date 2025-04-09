@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { get, post } from "@/lib/http";
+import { get, post, del, put } from "@/lib/http";
 import { info } from "@/lib/log";
 import { BookOpen, Plus, Search, ArrowLeft, Eye, Edit, Trash2 } from "lucide-react";
 import {
@@ -51,6 +51,21 @@ export default function CoursesPage() {
     keywords: []
   });
 
+  // 删除课程
+  const handleDeleteCourse = async (id: string) => {
+    try {
+      setLoading(true);
+      await del(`/courses/${id}`);
+      setCourses(courses.filter(course => course.id !== id));
+      setError(null);
+    } catch (err) {
+      setError('删除课程失败');
+      info('删除课程失败:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 获取课程列表
   useEffect(() => {
     async function fetchCourses() {
@@ -97,14 +112,24 @@ export default function CoursesPage() {
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      await post('/courses', formData);
+      const isEditing = !!formData.name;
+
+      if (isEditing) {
+        const courseId = courses.find(c => c.name === formData.name)?.id;
+        if (courseId) {
+          await put(`/courses/${courseId}`, formData);
+        }
+      } else {
+        await post('/courses', formData);
+      }
+
       setDialogOpen(false);
       setFormData({ name: '', description: '', keywords: [] });
       const res = await get<Course[]>('/courses');
       setCourses(res);
     } catch (err) {
-      setError('创建课程失败');
-      info('创建课程失败:', err);
+      setError(formData.name ? '更新课程失败' : '创建课程失败');
+      info(formData.name ? '更新课程失败:' : '创建课程失败:', err);
     } finally {
       setLoading(false);
     }
@@ -115,9 +140,9 @@ export default function CoursesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>添加新课程</DialogTitle>
+            <DialogTitle>{formData.name ? `编辑 ${formData.name}` : '添加新课程'}</DialogTitle>
             <DialogDescription>
-              填写课程信息并提交
+              {formData.name ? '修改课程信息' : '填写课程信息并提交'}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -240,10 +265,29 @@ export default function CoursesPage() {
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <Eye size={16} />
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => {
+                      setFormData({
+                        name: course.name,
+                        description: course.description,
+                        keywords: course.keywords || []
+                      });
+                      setDialogOpen(true);
+                    }}
+                    disabled={loading}
+                  >
                     <Edit size={16} />
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:text-destructive">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                    onClick={() => handleDeleteCourse(course.id)}
+                    disabled={loading}
+                  >
                     <Trash2 size={16} />
                   </Button>
                 </div>
