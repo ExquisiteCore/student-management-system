@@ -10,6 +10,7 @@ import Link from "next/link";
 import { PATHS } from "@/lib/path";
 import Image from "next/image";
 import { UUID } from "crypto";
+import { StudentDetailDialog } from "@/components/student-detail-dialog";
 
 // 定义学生类型
 type Student = {
@@ -71,8 +72,16 @@ export default function StudentsPage() {
     }));
   };
 
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string>('');
+
   return (
     <div className="container mx-auto px-4 py-8">
+      <StudentDetailDialog
+        studentId={selectedStudentId}
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+      />
       {/* 页面标题和返回按钮 */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
@@ -185,6 +194,10 @@ export default function StudentsPage() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
+                          onClick={() => {
+                            setSelectedStudentId(student.id);
+                            setDetailDialogOpen(true);
+                          }}
                         >
                           <Eye size={16} />
                         </Button>
