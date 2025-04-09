@@ -29,7 +29,9 @@ type Course = {
   duration: number; // 单位：分钟
   student_count: number;
   status: string;
-  created_at?: number[];
+  keywords: string[];
+  created_at: number[];
+  updated_at: number[];
 };
 
 export default function CoursesPage() {
@@ -54,7 +56,7 @@ export default function CoursesPage() {
     async function fetchCourses() {
       try {
         setLoading(true);
-        const res = await get<Course[]>('/courses');
+        const res = await get<Course[]>('/course');
         setCourses(res);
         setError(null);
       } catch (err) {
@@ -255,6 +257,13 @@ export default function CoursesPage() {
                 </div>
 
                 <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{course.description}</p>
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {course.keywords?.map((keyword, index) => (
+                    <span key={index} className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
 
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center gap-2 text-sm">
