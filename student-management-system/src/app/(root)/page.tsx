@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { BarChart3, BookOpen, GraduationCap, ListChecks, PlusCircle, Users, User, LogIn } from "lucide-react";
 import { SearchStudentDialog } from "@/components/search-student-dialog";
+import { CreateAnnouncementDialog } from "@/components/create-announcement-dialog";
 import { useState, useEffect } from "react";
 import { Store } from "@tauri-apps/plugin-store";
 import { PATHS } from "@/lib/path";
@@ -236,7 +237,12 @@ export default function Home() {
         </div>
 
         <div className="bg-card p-6 rounded-lg shadow-sm border">
-          <h2 className="text-xl font-semibold mb-4">系统公告</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">系统公告</h2>
+            {isLoggedIn && user && user.role === "teacher" && (
+              <CreateAnnouncementDialog />
+            )}
+          </div>
           <div className="space-y-2" style={{ maxHeight: '150px', overflowY: 'auto' }}>
             {loading ? (
               <div className="flex justify-center p-4">
