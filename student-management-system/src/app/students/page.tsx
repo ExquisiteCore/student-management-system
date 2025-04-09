@@ -2,9 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { get } from "@/lib/http";
+import { get, del } from "@/lib/http";
 import { info } from "@/lib/log";
-import { Users, Plus, Search, ArrowLeft, Eye, Edit, Trash2 } from "lucide-react";
+import { Users, Plus, Search, ArrowLeft, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { PATHS } from "@/lib/path";
@@ -181,13 +181,22 @@ export default function StudentsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Eye size={16} />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Edit size={16} />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={async () => {
+                            if (confirm(`确定要删除学生 ${student.username} 吗？`)) {
+                              try {
+                                await del(`/delstudent/${student.id}`);
+                                setStudents(students.filter(s => s.id !== student.id));
+                              } catch (err) {
+                                info('删除学生失败:', err);
+                                alert('删除学生失败');
+                              }
+                            }
+                          }}
+                        >
                           <Trash2 size={16} />
                         </Button>
                       </div>
