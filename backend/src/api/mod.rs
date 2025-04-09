@@ -105,7 +105,11 @@ pub fn create_routes() -> Router<Arc<Pool<Postgres>>> {
 
     // 管理员路由 - 需要管理员权限
     let admin_routes = Router::new()
-        .route("/announcement", post(announcementapi::create_announcement))
+        .route(
+            "/announcement",
+            delete(announcementapi::create_announcement),
+        )
+        .route("/delstudent/{id}", delete(studentapi::delete_student))
         .layer(from_fn(auth::admin_middleware));
 
     // 合并所有路由

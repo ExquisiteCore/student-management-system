@@ -146,6 +146,13 @@ pub struct LoginRequest {
     pub password: String,
 }
 
+/// 删除用户的请求数据结构
+#[derive(Debug, Deserialize)]
+pub struct DeleteUserRequest {
+    /// 用户ID
+    pub id: Uuid,
+}
+
 /// 包含用户（学生）信息及其课程记录、作业和试卷记录的详细信息结构体
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserWithDetails {

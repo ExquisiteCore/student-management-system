@@ -9,7 +9,7 @@ use std::sync::Arc;
 
 use crate::error::{AppError, AppErrorType};
 use crate::middleware::auth;
-use crate::model::models::user::{CreateUserRequest, LoginRequest, User};
+use crate::model::models::user::{CreateUserRequest, DeleteUserRequest, LoginRequest, User};
 
 /// 用户注册API
 ///
@@ -81,6 +81,36 @@ pub async fn login_user(
             "用户名/邮箱或密码错误",
             AppErrorType::IncorrectLogin,
         )),
+        Err(e) => Err(AppError::new(e, AppErrorType::Db)),
+    }
+}
+
+/// 删除学生账号API
+///
+/// 根据用户ID删除学生账号
+pub async fn delete_student_account(
+    State(pool): State<Arc<Pool<Postgres>>>,
+    Json(req): Json<DeleteUserRequest>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    // 检查用户是否为学生
+    match User::find_by_id(&pool, req.id).await {
+        Ok(Some(user)) if user.role == "student" => {
+            // 尝试删除用户
+            match User::delete(&pool, req.id).await {
+                Ok(_) => {
+                    let response = serde_json::json!({
+                        "message": "学生账号删除成功"
+                    });
+                    Ok(Json(response))
+                }
+                Err(e) => Err(AppError::new(e, AppErrorType::Db)),
+            }
+        }
+        Ok(Some(_)) => Err(AppError::new_message(
+            "只能删除学生账号",
+            AppErrorType::Notfound,
+        )),
+        Ok(None) => Err(AppError::new_message("用户不存在", AppErrorType::Notfound)),
         Err(e) => Err(AppError::new(e, AppErrorType::Db)),
     }
 }
