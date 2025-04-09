@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import Link from "next/link";
 import Image from "next/image";
-import { BarChart3, BookOpen, GraduationCap, ListChecks, PlusCircle, Users, User, LogIn } from "lucide-react";
+import { BarChart3, BookOpen, GraduationCap, ListChecks, Users, User, LogIn } from "lucide-react";
 import { SearchStudentDialog } from "@/components/search-student-dialog";
 import { CreateAnnouncementDialog } from "@/components/create-announcement-dialog";
 import { useState, useEffect } from "react";
@@ -331,17 +331,16 @@ export default function Home() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           <TooltipProvider>
             {[
-              { title: "学生管理", icon: <Users size={24} />, color: "bg-blue-100 dark:bg-blue-950" },
-              { title: "课程管理", icon: <BookOpen size={24} />, color: "bg-yellow-100 dark:bg-yellow-950" },
-              { title: "试卷管理", icon: <ListChecks size={24} />, color: "bg-red-100 dark:bg-red-950" },
-              { title: "作业管理", icon: <Users size={24} />, color: "bg-purple-100 dark:bg-purple-950" },
-              { title: "成绩分析", icon: <BarChart3 size={24} />, color: "bg-pink-100 dark:bg-pink-950" },
-              { title: "添加数据", icon: <PlusCircle size={24} />, color: "bg-orange-100 dark:bg-orange-950" },
+              { title: "学生管理", icon: <Users size={24} />, color: "bg-blue-100 dark:bg-blue-950", path: PATHS.STUDENTS },
+              { title: "课程管理", icon: <BookOpen size={24} />, color: "bg-yellow-100 dark:bg-yellow-950", path: PATHS.COURSES },
+              { title: "试卷管理", icon: <ListChecks size={24} />, color: "bg-red-100 dark:bg-red-950", path: PATHS.EXAMS },
+              { title: "作业管理", icon: <GraduationCap size={24} />, color: "bg-purple-100 dark:bg-purple-950", path: PATHS.HOMEWORKS },
+              { title: "成绩分析", icon: <BarChart3 size={24} />, color: "bg-pink-100 dark:bg-pink-950", path: PATHS.ANALYSIS },
             ].map((item, index) => (
               <Tooltip key={index}>
                 <TooltipTrigger asChild>
                   <Link
-                    href="#"
+                    href={item.path}
                     className={`flex flex-col items-center justify-center p-6 rounded-lg ${item.color} hover:shadow-md transition-all`}
                   >
                     {item.icon}
