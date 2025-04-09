@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { get, del } from "@/lib/http";
 import { info } from "@/lib/log";
-import { Users, Plus, Search, ArrowLeft, Trash2 } from "lucide-react";
+import { Users, Plus, Search, ArrowLeft, Trash2, Eye } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { PATHS } from "@/lib/path";
@@ -181,6 +181,13 @@ export default function StudentsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                        >
+                          <Eye size={16} />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
