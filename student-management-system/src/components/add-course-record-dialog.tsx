@@ -125,26 +125,11 @@ export function AddCourseRecordDialog({
         setError('请填写课程内容');
         return;
       }
-
-      // 格式化函数
-      function formatDateWithTimezone(date: string): string {
-        const d = new Date(date); // 将输入日期字符串转换为 Date 对象
-        const isoString = d.toISOString(); // 获取 ISO 格式的字符串，例如 "2025-04-08T14:17:34.640Z"
-
-        // 从 ISO 字符串提取日期和时间部分
-        const datePart = isoString.split('T')[0];  // 获取日期部分 "2025-04-08"
-        const timePart = isoString.split('T')[1].split('Z')[0];  // 获取时间部分 "14:17:34.640"
-
-        // 构建最终的格式： "2025-04-08 14:17:34.640557+00"
-        return `${datePart} ${timePart}+00`;
-      }
-
-      // 将日期字符串转换为Date对象
       const submitData = {
         ...formData,
         student_id: formData.student_id,
         course_id: formData.course_id,
-        class_date: formatDateWithTimezone(formData.class_date),
+        class_date: formData.class_date,
       };
       info('提交的数据:', submitData);
       setLoading(true);
