@@ -10,6 +10,7 @@ import { info } from "@/lib/log";
 type StudentFormData = {
   username: string;
   email: string;
+  password: string;
   grade?: number;
   parent_name?: string;
   parent_phone?: string;
@@ -29,6 +30,7 @@ export function AddStudentDialog({
   const [formData, setFormData] = useState<StudentFormData>({
     username: '',
     email: '',
+    password: '666666',
     grade: undefined,
     parent_name: '',
     parent_phone: '',
