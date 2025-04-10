@@ -6,6 +6,7 @@ import { get, post, del, put } from "@/lib/http";
 import { info } from "@/lib/log";
 import { BookOpen, Plus, Search, ArrowLeft, Eye, Edit, Trash2 } from "lucide-react";
 import { CourseRecordsDialog } from "@/components/course-records-dialog";
+import { AddCourseRecordDialog } from "@/components/add-course-record-dialog";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,7 @@ type Course = {
 
 export default function CoursesPage() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [addRecordDialogOpen, setAddRecordDialogOpen] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   // 课程列表状态
   const [courses, setCourses] = useState<Course[]>([]);
@@ -138,12 +140,28 @@ export default function CoursesPage() {
     }
   };
 
+  // 刷新课程记录列表
+  const refreshCourseRecords = async () => {
+    try {
+      const res = await get<Course[]>('/course');
+      setCourses(res);
+    } catch (err) {
+      info('刷新课程列表失败:', err);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <CourseRecordsDialog
         courseId={selectedCourseId}
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
+      />
+      <AddCourseRecordDialog
+        courseId={selectedCourseId}
+        open={addRecordDialogOpen}
+        onOpenChange={setAddRecordDialogOpen}
+        onSuccess={refreshCourseRecords}
       />
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
@@ -281,6 +299,19 @@ export default function CoursesPage() {
                     disabled={loading}
                   >
                     <Eye size={16} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => {
+                      setSelectedCourseId(course.id);
+                      setAddRecordDialogOpen(true);
+                    }}
+                    disabled={loading}
+                    title="添加课程记录"
+                  >
+                    <Plus size={16} />
                   </Button>
                   <Button
                     variant="ghost"
