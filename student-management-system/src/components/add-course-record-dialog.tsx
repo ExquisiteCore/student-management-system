@@ -19,6 +19,19 @@ type Student = {
   grade?: number;
 };
 
+// 定义课程记录响应类型
+type CourseRecord = {
+  id: string;
+  student_id: string;
+  course_id: string;
+  class_date: string;
+  content: string;
+  performance: string;
+  teacher_id: string;
+  created_at: string;
+  updated_at: string;
+};
+
 type CourseRecordFormData = {
   student_id: UUID;
   course_id: UUID;
@@ -113,15 +126,29 @@ export function AddCourseRecordDialog({
         return;
       }
 
-      // 创建一个新的数据对象，将class_date转换为ISO格式的日期字符串
+      // 格式化函数
+      function formatDateWithTimezone(date: string): string {
+        const d = new Date(date); // 将输入日期字符串转换为 Date 对象
+        const isoString = d.toISOString(); // 获取 ISO 格式的字符串，例如 "2025-04-08T14:17:34.640Z"
+
+        // 从 ISO 字符串提取日期和时间部分
+        const datePart = isoString.split('T')[0];  // 获取日期部分 "2025-04-08"
+        const timePart = isoString.split('T')[1].split('Z')[0];  // 获取时间部分 "14:17:34.640"
+
+        // 构建最终的格式： "2025-04-08 14:17:34.640557+00"
+        return `${datePart} ${timePart}+00`;
+      }
+
+      // 将日期字符串转换为Date对象
       const submitData = {
         ...formData,
-        // 将YYYY-MM-DD格式的日期字符串转换为完整的ISO日期字符串
-        class_date: new Date(formData.class_date + 'T00:00:00Z')
+        student_id: formData.student_id,
+        course_id: formData.course_id,
+        class_date: formatDateWithTimezone(formData.class_date),
       };
-
+      info('提交的数据:', submitData);
       setLoading(true);
-      await post('/course-records', submitData);
+      await post<CourseRecord>('/course-records', submitData);
       setError(null);
       onOpenChange(false);
       if (onSuccess) onSuccess();
@@ -163,7 +190,11 @@ export function AddCourseRecordDialog({
               aria-label="选择学生"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 col-span-3"
               value={formData.student_id}
-              onChange={(e) => setFormData({ ...formData, student_id: e.target.value as UUID })}
+              onChange={(e) => {
+                // 确保student_id是有效的UUID或空字符串
+                const studentId = e.target.value || '';
+                setFormData({ ...formData, student_id: studentId as UUID });
+              }}
               disabled={loading}
             >
               <option value="">请选择学生</option>
