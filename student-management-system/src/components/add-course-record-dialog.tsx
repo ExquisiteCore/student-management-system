@@ -112,8 +112,15 @@ export function AddCourseRecordDialog({
         return;
       }
 
+      // 创建一个新的数据对象，将class_date转换为ISO格式的日期字符串
+      const submitData = {
+        ...formData,
+        // 将YYYY-MM-DD格式的日期字符串转换为完整的ISO日期字符串
+        class_date: new Date(formData.class_date + 'T00:00:00Z')
+      };
+
       setLoading(true);
-      await post('/course-records', formData);
+      await post('/course-records', submitData);
       setError(null);
       onOpenChange(false);
       if (onSuccess) onSuccess();
@@ -152,6 +159,7 @@ export function AddCourseRecordDialog({
             </Label>
             <select
               id="student"
+              aria-label="选择学生"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 col-span-3"
               value={formData.student_id}
               onChange={(e) => setFormData({ ...formData, student_id: e.target.value })}
