@@ -38,6 +38,7 @@ pub struct CreateCourseRecordRequest {
     /// 课程ID
     pub course_id: Uuid,
     /// 上课日期
+    #[serde(deserialize_with = "deserialize_date")]
     pub class_date: Date,
     /// 上课内容
     pub content: String,
@@ -45,6 +46,15 @@ pub struct CreateCourseRecordRequest {
     pub performance: Option<String>,
     /// 教师ID
     pub teacher_id: Uuid,
+}
+
+fn deserialize_date<'de, D>(deserializer: D) -> Result<Date, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    let format = time::macros::format_description!("[year]-[month]-[day]");
+    Date::parse(&s, &format).map_err(serde::de::Error::custom)
 }
 
 /// 更新课程记录的请求数据结构
