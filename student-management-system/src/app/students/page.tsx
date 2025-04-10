@@ -11,6 +11,7 @@ import { PATHS } from "@/lib/path";
 import Image from "next/image";
 import { UUID } from "crypto";
 import { StudentDetailDialog } from "@/components/student-detail-dialog";
+import { AddStudentDialog } from "@/components/add-student-dialog";
 
 // 定义学生类型
 type Student = {
@@ -39,21 +40,21 @@ export default function StudentsPage() {
   const [imageError, setImageError] = useState<Record<string, boolean>>({});
 
   // 获取学生列表
-  useEffect(() => {
-    async function fetchStudents() {
-      try {
-        setLoading(true);
-        const res = await get<Student[]>('/students');
-        setStudents(res);
-        setError(null);
-      } catch (err) {
-        setError('获取学生列表失败');
-        info('获取学生列表失败:', err);
-      } finally {
-        setLoading(false);
-      }
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      const res = await get<Student[]>('/students');
+      setStudents(res);
+      setError(null);
+    } catch (err) {
+      setError('获取学生列表失败');
+      info('获取学生列表失败:', err);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     fetchStudents();
   }, []);
 
@@ -74,6 +75,7 @@ export default function StudentsPage() {
 
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -81,6 +83,14 @@ export default function StudentsPage() {
         studentId={selectedStudentId}
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
+      />
+      <AddStudentDialog
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
+        onSuccess={() => {
+          // 刷新学生列表
+          fetchStudents();
+        }}
       />
       {/* 页面标题和返回按钮 */}
       <div className="flex items-center justify-between mb-6">
@@ -92,7 +102,7 @@ export default function StudentsPage() {
           </Link>
           <h1 className="text-2xl font-bold">学生管理</h1>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => setAddDialogOpen(true)}>
           <Plus size={18} />
           <span>添加学生</span>
         </Button>
