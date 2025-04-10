@@ -30,6 +30,7 @@ export function CourseRecordsDialog({
   const [records, setRecords] = useState<CourseRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [nameMap, setNameMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (open && courseId) {
@@ -45,6 +46,22 @@ export function CourseRecordsDialog({
       });
       setRecords(res);
       setError(null);
+
+      // 获取用户名映射
+      const newNameMap: Record<string, string> = {};
+      await Promise.all(
+        res.map(async (record) => {
+          try {
+            const studentName = await get<string>(`/username/${record.student_id}`);
+            newNameMap[record.student_id] = studentName;
+            const teacherName = await get<string>(`/username/${record.teacher_id}`);
+            newNameMap[record.teacher_id] = teacherName;
+          } catch (err) {
+            info('获取用户名失败:', err);
+          }
+        })
+      );
+      setNameMap(newNameMap);
     } catch (err) {
       setError('获取课程记录失败');
       info('获取课程记录失败:', err);
@@ -54,8 +71,14 @@ export function CourseRecordsDialog({
   };
 
   const formatDate = (dateStr: string) => {
+    if (Array.isArray(dateStr)) {
+      const [year, dayOfYear] = dateStr;
+      const date = new Date(year, 0); // 从年份的第一天开始
+      date.setDate(dayOfYear); // 加上天数
+      return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+    }
     const date = new Date(dateStr);
-    return date.toLocaleDateString('zh-CN');
+    return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
   };
 
   return (
@@ -82,8 +105,8 @@ export function CourseRecordsDialog({
               <TableHeader>
                 <TableRow>
                   <TableHead>上课日期</TableHead>
-                  <TableHead>学生ID</TableHead>
-                  <TableHead>教师ID</TableHead>
+                  <TableHead>学生名称</TableHead>
+                  <TableHead>教师名称</TableHead>
                   <TableHead>课程内容</TableHead>
                   <TableHead>表现评价</TableHead>
                 </TableRow>
@@ -92,8 +115,8 @@ export function CourseRecordsDialog({
                 {records.map((record) => (
                   <TableRow key={record.id}>
                     <TableCell>{formatDate(record.class_date)}</TableCell>
-                    <TableCell>{record.student_id.substring(0, 8)}</TableCell>
-                    <TableCell>{record.teacher_id.substring(0, 8)}</TableCell>
+                    <TableCell>{nameMap[record.student_id] || record.student_id.substring(0, 8)}</TableCell>
+                    <TableCell>{nameMap[record.teacher_id] || record.teacher_id.substring(0, 8)}</TableCell>
                     <TableCell className="max-w-xs truncate">{record.content}</TableCell>
                     <TableCell>{record.performance}</TableCell>
                   </TableRow>
