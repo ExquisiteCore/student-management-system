@@ -93,10 +93,13 @@ export function StudentDetailDialog({
     }
   }, [open, studentId]);
 
-  const formatDate = (dateArray: number[]) => {
-    if (!dateArray || dateArray.length < 6) return '';
-    const [year, month, day, hour, minute] = dateArray;
-    return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')} ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+  const formatDate = (dateStr: string | number[]) => {
+    if (Array.isArray(dateStr)) {
+      const [year, month, day, hour, minute] = dateStr;
+      return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')} ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    }
+    const date = new Date(dateStr);
+    return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
   };
 
   return (

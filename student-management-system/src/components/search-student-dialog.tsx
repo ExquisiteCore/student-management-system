@@ -199,6 +199,17 @@ export function SearchStudentDialog() {
   };
 
   // 获取学生详情
+  const formatDate = (dateStr: string) => {
+    if (Array.isArray(dateStr)) {
+      const [year, dayOfYear] = dateStr;
+      const date = new Date(year, 0); // 从年份的第一天开始
+      date.setDate(dayOfYear); // 加上天数
+      return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+    }
+    const date = new Date(dateStr);
+    return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+  };
+
   const fetchStudentDetails = async (studentId: string) => {
     setIsLoadingDetails(true);
     try {
@@ -407,7 +418,7 @@ export function SearchStudentDialog() {
                           </div>
                           {selectedStudent.course_records.map((record) => (
                             <div key={record.id.toString()} className="text-sm grid grid-cols-3 border-t py-2">
-                              <div>{new Date(record.class_date).toLocaleDateString()}</div>
+                              <div>{formatDate(record.class_date)}</div>
                               <div>{record.content}</div>
                               <div>{record.performance || '-'}</div>
                             </div>
@@ -429,7 +440,7 @@ export function SearchStudentDialog() {
                           </div>
                           {selectedStudent.homeworks.map((homework) => (
                             <div key={homework.id.toString()} className="text-sm grid grid-cols-4 border-t py-2">
-                              <div>{new Date(homework.submission_date).toLocaleDateString()}</div>
+                              <div>{formatDate(homework.submission_date)}</div>
                               <div>{homework.title}</div>
                               <div>{homework.grade || '-'}</div>
                               <div>{homework.feedback || '-'}</div>
@@ -451,7 +462,7 @@ export function SearchStudentDialog() {
                           </div>
                           {selectedStudent.exam_records.map((record) => (
                             <div key={record.id.toString()} className="text-sm grid grid-cols-3 border-t py-2">
-                              <div>{new Date(record.completion_date).toLocaleDateString()}</div>
+                              <div>{formatDate(record.completion_date)}</div>
                               <div>{record.score !== undefined && record.score !== null ? record.score : '-'}</div>
                               <div>{record.notes || '-'}</div>
                             </div>
