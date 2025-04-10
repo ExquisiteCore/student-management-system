@@ -10,21 +10,22 @@ import { get, post } from '@/lib/http';
 import { info } from '@/lib/log';
 import { Store } from "@tauri-apps/plugin-store";
 import { AuthState } from "@/lib/types";
+import { UUID } from "crypto";
 
 type Student = {
-  id: string;
+  id: UUID;
   username: string;
   email?: string;
   grade?: number;
 };
 
 type CourseRecordFormData = {
-  student_id: string;
-  course_id: string;
+  student_id: UUID;
+  course_id: UUID;
   class_date: string;
   content: string;
   performance: string;
-  teacher_id: string;
+  teacher_id: UUID;
 };
 
 export function AddCourseRecordDialog({
@@ -33,7 +34,7 @@ export function AddCourseRecordDialog({
   onOpenChange,
   onSuccess,
 }: {
-  courseId: string;
+  courseId: UUID;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
@@ -42,12 +43,12 @@ export function AddCourseRecordDialog({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<CourseRecordFormData>({
-    student_id: '',
+    student_id: '' as UUID,
     course_id: courseId,
     class_date: new Date().toISOString().split('T')[0],
     content: '',
     performance: '',
-    teacher_id: '',
+    teacher_id: '' as UUID,
   });
 
   // 获取学生列表
@@ -126,7 +127,7 @@ export function AddCourseRecordDialog({
       if (onSuccess) onSuccess();
       // 重置表单
       setFormData({
-        student_id: '',
+        student_id: '' as UUID,
         course_id: courseId,
         class_date: new Date().toISOString().split('T')[0],
         content: '',
@@ -162,7 +163,7 @@ export function AddCourseRecordDialog({
               aria-label="选择学生"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 col-span-3"
               value={formData.student_id}
-              onChange={(e) => setFormData({ ...formData, student_id: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, student_id: e.target.value as UUID })}
               disabled={loading}
             >
               <option value="">请选择学生</option>

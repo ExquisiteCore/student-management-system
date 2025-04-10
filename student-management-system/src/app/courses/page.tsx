@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { PATHS } from "@/lib/path";
+import { UUID } from "crypto";
 
 // 定义课程类型
 type Course = {
@@ -158,7 +159,7 @@ export default function CoursesPage() {
         onOpenChange={setDetailDialogOpen}
       />
       <AddCourseRecordDialog
-        courseId={selectedCourseId}
+        courseId={selectedCourseId as UUID}
         open={addRecordDialogOpen}
         onOpenChange={setAddRecordDialogOpen}
         onSuccess={refreshCourseRecords}
