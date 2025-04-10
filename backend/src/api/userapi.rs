@@ -2,10 +2,14 @@
 //!
 //! 提供用户相关的API端点
 
-use axum::{Json, extract::State};
+use axum::{
+    Json,
+    extract::{Path, State},
+};
 use bcrypt::{DEFAULT_COST, hash};
 use sqlx::{Pool, Postgres};
 use std::sync::Arc;
+use uuid::Uuid;
 
 use crate::error::{AppError, AppErrorType};
 use crate::middleware::auth;
@@ -54,6 +58,20 @@ pub async fn register_user(
     // 创建新用户
     match User::create(&pool, req_with_hashed_password).await {
         Ok(user) => Ok(Json(user)),
+        Err(e) => Err(AppError::new(e, AppErrorType::Db)),
+    }
+}
+
+/// 通过用户ID获取用户名
+///
+/// 根据用户ID查询并返回对应的用户名
+pub async fn get_username_by_id(
+    State(pool): State<Arc<Pool<Postgres>>>,
+    Path(id): Path<Uuid>,
+) -> Result<Json<String>, AppError> {
+    match User::find_by_id(&pool, id).await {
+        Ok(Some(user)) => Ok(Json(user.username)),
+        Ok(None) => Err(AppError::new_message("用户不存在", AppErrorType::Notfound)),
         Err(e) => Err(AppError::new(e, AppErrorType::Db)),
     }
 }
